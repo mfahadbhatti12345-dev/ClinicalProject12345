@@ -34,10 +34,17 @@
 
     // --- CONFIGURATION ---
     const GOOGLE_API_KEY = "AIzaSyA8KmS9eEzntZ0JHBpRd97iJSeIHhVa3XE"; 
-    const SUPABASE_URL = "https://rkfqtbjfknydcydlkauy.supabase.co"; 
-    const SUPABASE_KEY = "sb_publishable_MX87w02lC19Lpxhhy3BBTg_hx4f4oxJ"; 
+    const SUPABASE_URL = "https://rtetcvvtggwtwdvtykbs.supabase.co"; 
+    const SUPABASE_KEY = "sb_publishable_QzzIUvhf5wopSlwHHDQ-Dg_QQmEZs9F"; 
 
     function App() {
+      // --- AUTH STATE ---
+      const [isLoggedIn, setIsLoggedIn] = useState(false);
+      const [passwordInput, setPasswordInput] = useState('');
+      const [rememberMe, setRememberMe] = useState(false);
+      const [authError, setAuthError] = useState('');
+
+      // --- APP STATE ---
       const [loading, setLoading] = useState(false);
       const [error, setError] = useState('');
       const [saveStatus, setSaveStatus] = useState(''); // 'saving', 'success', 'error', 'deleted'
@@ -99,7 +106,38 @@
 
       const [formData, setFormData] = useState(initialFormState);
 
-      // --- Handlers ---
+      // --- AUTH EFFECT ---
+      useEffect(() => {
+        // Check local storage for persistent login
+        const savedAuth = localStorage.getItem('drug_study_app_auth');
+        if (savedAuth === 'valid') {
+          setIsLoggedIn(true);
+        }
+      }, []);
+
+      // --- AUTH HANDLERS ---
+      const handleLogin = (e) => {
+        e.preventDefault();
+        if (passwordInput === '12345') {
+          setIsLoggedIn(true);
+          setAuthError('');
+          if (rememberMe) {
+            localStorage.setItem('drug_study_app_auth', 'valid');
+          }
+        } else {
+          setAuthError('Invalid password. Please try again.');
+        }
+      };
+
+      const handleLogout = () => {
+        setIsLoggedIn(false);
+        localStorage.removeItem('drug_study_app_auth');
+        setPasswordInput('');
+        setRememberMe(false);
+        setView('form');
+      };
+
+      // --- APP HANDLERS ---
       const handleInputChange = (section, field, value) => {
         setFormData(prev => ({ ...prev, [field]: value }));
       };
@@ -349,6 +387,67 @@
         }
       };
 
+      // --- LOGIN VIEW ---
+      if (!isLoggedIn) {
+        return (
+          <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans">
+            <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm border border-gray-200">
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                   <i className="fas fa-user-shield text-3xl text-blue-600"></i>
+                </div>
+                <h1 className="text-2xl font-bold text-gray-800">Secure Access</h1>
+                <p className="text-gray-500 text-sm mt-1">Drug Interaction Study</p>
+              </div>
+              
+              <form onSubmit={handleLogin} className="space-y-6">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">Access Password</label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <i className="fas fa-lock text-gray-400"></i>
+                    </div>
+                    <input 
+                      type="password" 
+                      className="w-full pl-10 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                      placeholder="Enter password"
+                      value={passwordInput}
+                      onChange={(e) => setPasswordInput(e.target.value)}
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex items-center">
+                  <input 
+                    id="remember_me" 
+                    type="checkbox" 
+                    className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded cursor-pointer"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                  />
+                  <label htmlFor="remember_me" className="ml-2 block text-sm text-gray-900 cursor-pointer">
+                    Remember me
+                  </label>
+                </div>
+
+                {authError && (
+                  <div className="text-red-600 text-sm flex items-center gap-2 bg-red-50 p-3 rounded-lg border border-red-100 animate-pulse">
+                    <i className="fas fa-exclamation-circle"></i> {authError}
+                  </div>
+                )}
+
+                <button 
+                  type="submit"
+                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-md text-sm font-bold text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                >
+                  Login System
+                </button>
+              </form>
+            </div>
+          </div>
+        );
+      }
+
       // --- PRINT VIEWS (Hidden unless printing) ---
       if (view === 'print_single' && printRecord) {
         const d = printRecord.study_data;
@@ -490,6 +589,13 @@
                    >
                      <i className="fas fa-plus"></i> New Record
                    </button>
+                   <button 
+                    onClick={handleLogout}
+                    className="bg-red-600/90 hover:bg-red-500 text-white px-3 py-2 rounded text-sm font-semibold flex items-center gap-2 ml-2"
+                    title="Logout"
+                   >
+                     <i className="fas fa-sign-out-alt"></i> Logout
+                   </button>
                  </div>
               </div>
             </header>
@@ -616,6 +722,13 @@
                 >
                   <i className="fas fa-database"></i> View Saved Records
                 </button>
+                <button 
+                  onClick={handleLogout}
+                  className="bg-red-600/90 hover:bg-red-500 text-white px-3 py-2 rounded text-sm font-semibold flex items-center gap-2 ml-2"
+                  title="Logout"
+                 >
+                   <i className="fas fa-sign-out-alt"></i> Logout
+                 </button>
               </div>
             </div>
           </header>
