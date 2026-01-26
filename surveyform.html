@@ -594,7 +594,7 @@
           // Confirmation Modal State
           const [confirmModal, setConfirmModal] = useState({ isOpen: false, title: '', message: '', onConfirm: () => {}, isDangerous: false });
 
-          const generateId = () => `PT-${Math.random().toString(36).substr(2, 6).toUpperCase()}-${new Date().getFullYear()}`;
+          const generateId = () => `PT-${Math.floor(100 + Math.random() * 900)}`;
 
           // Default State Helper to ensure consistency
           const getInitialPatientState = () => ({
