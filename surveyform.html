@@ -596,23 +596,26 @@
 
           const generateId = () => `PT-${Math.random().toString(36).substr(2, 6).toUpperCase()}-${new Date().getFullYear()}`;
 
-          // INITIAL STATE
-          const [patient, setPatient] = useState({
+          // Default State Helper to ensure consistency
+          const getInitialPatientState = () => ({
             id: generateId(),
-            ward: 'General Ward', // New: Ward Assignment
+            ward: 'General Ward', 
             age: '',
             gender: 'Male',
             weight: '',
-            crcl: '', // Optional
-            rft_enabled: false, // New: Lab Toggle
-            lft_enabled: false, // New: Lab Toggle
-            serum_creatinine: '', // New: Value
-            bilirubin: '', // New: Value
+            crcl: '', 
+            rft_enabled: false, 
+            lft_enabled: false, 
+            serum_creatinine: '', 
+            bilirubin: '', 
             primary_diagnosis: '', 
             comorbidities: '',      
             intervention: 'Monitoring Only',
             outcome: 'Stable'
           });
+
+          // INITIAL STATE
+          const [patient, setPatient] = useState(getInitialPatientState());
 
           // Updated Drug State with Generic (name) and Brand
           const [drugs, setDrugs] = useState([
@@ -703,13 +706,12 @@
             setLookupLoading(prev => ({ ...prev, [id]: true }));
 
             const context = `
-              Act as a Clinical Pharmacologist familiar with the Pakistan National Formulary (PNF) and local market availability in Pakistan.
+              Act as a Clinical Pharmacologist. 
               Input: "${query}".
               Task: 
               1. Correct spelling of the drug name if needed.
-              2. Identify the Generic Name.
-              3. Identify a representative Brand Name strictly available in Pakistan (e.g., Panadol, Augmentin, Risek, Lowplat, Ascard, etc.).
-              4. Identify a common standard dosage strength (e.g. 500mg, 10mg) for an adult.
+              2. Identify the Generic Name and a representative Brand Name.
+              3. Identify a common standard dosage strength (e.g. 500mg, 10mg) for an adult.
               
               Return strictly valid JSON only with no markdown formatting:
               {
@@ -763,22 +765,7 @@
                 message: "This will clear the current form. Any unsaved data will be lost.",
                 isDangerous: false,
                 onConfirm: () => {
-                    setPatient({
-                        id: generateId(),
-                        ward: 'General Ward',
-                        age: '',
-                        gender: 'Male',
-                        weight: '',
-                        crcl: '',
-                        rft_enabled: false,
-                        lft_enabled: false,
-                        serum_creatinine: '',
-                        bilirubin: '',
-                        primary_diagnosis: '',
-                        comorbidities: '',
-                        intervention: 'Monitoring Only',
-                        outcome: 'Stable'
-                    });
+                    setPatient(getInitialPatientState());
                     setDrugs([{ id: 1, name: '', brand: '', dose: '', freq: 'QD', route: 'Oral', startDate: '' }]);
                     setInteractions([]);
                     setChatHistory([{ role: 'system', text: 'I am your Clinical AI Analyst. I have access to the current patient profile. Ask me about trends, mortality risks, or specific mechanism queries.' }]);
@@ -868,8 +855,9 @@
                   title: "Load Patient Record?",
                   message: `Load patient ${record.patientId} into active session? Unsaved changes will be lost.`,
                   onConfirm: () => {
-                      setPatient(record.demographics);
-                      setDrugs(record.medications);
+                      // Fix: Merge saved data with default structure to prevent uncontrolled input errors for missing fields in old records
+                      setPatient({ ...getInitialPatientState(), ...record.demographics });
+                      setDrugs(record.medications || []);
                       setInteractions(record.interactions || []);
                       
                       // Smart Tab Switching: If analysis exists, go there to print/view. Otherwise go to intake.
