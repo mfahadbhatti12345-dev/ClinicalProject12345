@@ -888,22 +888,34 @@
             setLoading(true);
             
             const context = `
-              Act as a Clinical Pharmacologist using the ClinIQ Protocol.
-              Patient: ${patient.age}y ${patient.gender}, Weight: ${patient.weight || 'Unknown'}kg, Ward: ${patient.ward || 'General'}.
-              Renal: CrCl: ${patient.crcl || 'N/A'}, Serum Creatinine: ${patient.rft_enabled ? patient.serum_creatinine + ' mg/dL' : 'Not Monitored'}.
-              Hepatic: Bilirubin: ${patient.lft_enabled ? patient.bilirubin + ' mg/dL' : 'Not Monitored'}.
-              Primary Diagnosis: ${patient.primary_diagnosis || 'Not Specified'}.
-              Comorbidities: ${patient.comorbidities || 'None'}.
-              Drugs: ${drugs.map(d => `${d.name} (${d.brand || 'No Brand'}, ${d.dose}, ${d.freq}, ${d.route}, Start: ${d.startDate || 'Unknown'})`).join(', ')}.
+              Act as a Senior Clinical Pharmacologist. Analyze the following patient regimen for **Clinically Significant** interactions only.
+
+              Patient Profile:
+              - Demographics: ${patient.age}y ${patient.gender}, Weight: ${patient.weight || 'Unknown'}kg, Ward: ${patient.ward || 'General'}.
+              - Renal Function: CrCl: ${patient.crcl || 'N/A'}, Serum Creatinine: ${patient.rft_enabled ? patient.serum_creatinine + ' mg/dL' : 'Not Monitored'}.
+              - Hepatic Function: Bilirubin: ${patient.lft_enabled ? patient.bilirubin + ' mg/dL' : 'Not Monitored'}.
+              - Diagnosis: ${patient.primary_diagnosis || 'Not Specified'}.
+              - Comorbidities: ${patient.comorbidities || 'None'}.
+              - Medication List: ${drugs.map(d => `${d.name} (${d.brand || 'No Brand'}, ${d.dose}, ${d.freq}, ${d.route}, Start: ${d.startDate || 'Unknown'})`).join(', ')}.
+
+              STRICT CLASSIFICATION LOGIC (Use this to classify and filter):
+              1. **Major:** Life-threatening or permanent damage likely. Contraindicated.
+              2. **Moderate:** Significant clinical status deterioration likely. Requires dose adjustment.
+              3. **Monitoring:** Manageable but requires specific monitoring (e.g., Labs, Vitals).
+              
+              **FILTERING RULE:** DO NOT output "Minor", "Safe", or trivial theoretical interactions. If no significant interactions exist, return an empty list.
 
               TASK:
-              1. Identify drug-drug interactions and drug-disease interactions.
-              2. Assign Severity: "Major", "Moderate", "Minor", "Monitoring", "Safe".
-              3. Mechanism (PK/PD).
-              4. "conceptual_explanation": Write a detailed, educational paragraph explaining the physiological basis of the interaction so a student can interpret the "Why".
-              5. Calculate specific dose adjustments based on Age, Renal Function (CrCl/Creatinine), and Hepatic function (Bilirubin).
-              6. Provide detailed formula/logic in 'formula' field.
-              7. Cite sources (BNF, Stockley's).
+              1. Identify Drug-Drug and Drug-Disease interactions based on the logic above.
+              2. SORT the output by Severity (Major first, then Moderate, then Monitoring).
+              3. For each interaction provide:
+                 - Mechanism (PK/PD).
+                 - "conceptual_explanation": Educational paragraph on the physiological basis.
+                 - Clinical Effect.
+                 - Recommendation (Actionable).
+                 - Specific dose adjustments based on Patient Age, Renal (CrCl), and Hepatic status.
+                 - Formula used for adjustment.
+                 - References (Standard formularies).
 
               OUTPUT FORMAT: JSON ONLY.
               Structure:
@@ -911,7 +923,7 @@
                 "interactions": [
                   {
                     "pair": "Drug A + Drug B",
-                    "severity": "Major",
+                    "severity": "Major", // or Moderate, Monitoring
                     "mechanism": "...",
                     "conceptual_explanation": "Detailed explanation...",
                     "effect": "...",
