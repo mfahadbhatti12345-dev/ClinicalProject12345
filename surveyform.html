@@ -296,7 +296,7 @@
                     </div>
 
                     {/* Patient Info Grid */}
-                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-6 mb-8 shadow-sm">
+                    <div className="bg-slate-5 border border-slate-200 rounded-lg p-6 mb-8 shadow-sm">
                         <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                             <User className="w-4 h-4"/> Clinical Demographics
                         </h2>
@@ -492,24 +492,16 @@
 
         // --- Login Component ---
         const LoginScreen = ({ onLogin, setGlobalKey, initialKey }) => {
-            const [step, setStep] = useState(1); // 1: PIN, 2: API Key
-            const [pin, setPin] = useState('');
+            const [step, setStep] = useState(1); // 1: Welcome, 2: API Key
             const [apiKeyInput, setApiKeyInput] = useState('');
-            const [error, setError] = useState('');
 
             // Update local input if parent key loads (e.g. from Supabase or Env)
             useEffect(() => {
                 if (initialKey) setApiKeyInput(initialKey);
             }, [initialKey]);
 
-            const handlePinSubmit = (e) => {
-                e.preventDefault();
-                if (pin === '12345') {
-                    setStep(2);
-                    setError('');
-                } else {
-                    setError('Invalid Security Code');
-                }
+            const handleEnterClick = () => {
+                setStep(2);
             };
 
             const handleKeySubmit = (e) => {
@@ -529,27 +521,13 @@
                                     <div className="w-16 h-16 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
                                         <Lock className="w-8 h-8 text-indigo-600" />
                                     </div>
-                                    <h2 className="text-2xl font-bold text-slate-800">ClinIQ Secure Access</h2>
-                                    <p className="text-slate-500 text-sm mt-1">Enter your clinical ID to continue</p>
+                                    <h2 className="text-2xl font-bold text-slate-800">ClinIQ Access</h2>
+                                    <p className="text-slate-500 text-sm mt-1">Clinical Intelligence Platform</p>
                                 </div>
-                                <form onSubmit={handlePinSubmit} className="space-y-4">
-                                    <div>
-                                        <input 
-                                            type="password" 
-                                            value={pin}
-                                            onChange={(e) => setPin(e.target.value)}
-                                            className="w-full text-center text-3xl tracking-widest p-3 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none font-mono"
-                                            placeholder="•••••"
-                                            maxLength={5}
-                                            autoFocus
-                                        />
-                                    </div>
-                                    {error && <p className="text-red-500 text-center text-sm">{error}</p>}
-                                    <button type="submit" className="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition">
-                                        Authenticate
-                                    </button>
-                                    <p className="text-xs text-slate-400 text-center mt-4">Authorized Personnel Only. <br/>Default Access: 12345</p>
-                                </form>
+                                <button onClick={handleEnterClick} className="w-full bg-indigo-600 text-white py-3 rounded-lg font-bold hover:bg-indigo-700 transition">
+                                    Enter Platform
+                                </button>
+                                <p className="text-xs text-slate-400 text-center mt-4">Authorized Personnel Only.</p>
                             </>
                         ) : (
                             <>
@@ -614,7 +592,7 @@
             serum_creatinine: '', 
             bilirubin: '', 
             primary_diagnosis: '', 
-            comorbidities: '',      
+            comorbidities: '',       
             intervention: 'Monitoring Only',
             outcome: 'Stable',
             daysAdmitted: 3,
@@ -647,9 +625,38 @@
                   console.error("Storage access error", e);
               }
 
-              // 2. Fetch Gemini API Key from Server (Supabase)
+              // 2. Fetch shared records from Supabase
+              const fetchRemoteRecords = async () => {
+                  if (!supabaseClient) return;
+                  try {
+                      const { data, error } = await supabaseClient
+                          .from('clinical_records')
+                          .select('*')
+                          .order('created_at', { ascending: false });
+
+                      if (data) {
+                          // Transform database rows to app structure
+                          const remoteRecords = data.map(row => ({
+                              patientId: row.patient_id,
+                              timestamp: row.created_at,
+                              demographics: row.demographics,
+                              medications: row.medications,
+                              interactions: row.interactions,
+                              disposition: row.disposition
+                          }));
+                          setSavedRecords(remoteRecords);
+                          // Sync remote to local backup
+                          localStorage.setItem('cliniq_records', JSON.stringify(remoteRecords));
+                      }
+                  } catch (err) {
+                      console.error("Error fetching remote records:", err);
+                  }
+              };
+              fetchRemoteRecords();
+
+              // 3. Fetch Gemini API Key from Server (Supabase)
               const fetchServerKey = async () => {
-                  if (geminiKey) return; // If we already have a key (e.g. from environment), don't overwrite it immediately
+                  if (geminiKey) return; 
                   
                   if (!supabaseClient) return;
                   try {
@@ -662,9 +669,6 @@
                       if (data && data.value) {
                           setGeminiKey(data.value);
                           console.log("Gemini API Key loaded from server.");
-                      } else {
-                          // setNotification({ type: 'info', message: 'API Key not found on server. Please configure manually.' });
-                          // setShowSettings(true);
                       }
                   } catch (err) {
                       console.warn("Could not fetch API key from server. Using manual input.", err);
