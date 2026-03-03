@@ -19,29 +19,29 @@
         @media print {
             @page { 
                 size: A4; 
-                margin: 12mm; /* Safe hardware margins */
+                margin: 8mm; /* Tighter margins to fit more content */
             }
             body { 
                 background-color: white !important; 
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact; 
-                font-size: 10.5pt; 
+                font-size: 8.5pt !important; /* Smaller base font for printing */
                 color: #1e293b; 
+                line-height: 1.2 !important; /* Tighter line height */
             }
             
             .report-content {
                 padding: 0 !important;
             }
             
-            /* Professional Print Table Styling */
+            /* Professional Print Table Styling - highly compacted */
             table { width: 100%; border-collapse: collapse; }
-            th { background-color: #f1f5f9 !important; color: #334155 !important; font-weight: 800; text-transform: uppercase; font-size: 0.75rem; border-bottom: 2px solid #cbd5e1; }
-            td { border-bottom: 1px solid #e2e8f0; padding: 8px 12px; }
+            th { background-color: #f1f5f9 !important; color: #334155 !important; font-weight: 800; text-transform: uppercase; font-size: 7pt !important; border-bottom: 1px solid #cbd5e1; padding: 3px 6px !important; }
+            td { border-bottom: 1px solid #e2e8f0; padding: 3px 6px !important; font-size: 7.5pt !important; }
             tr:last-child td { border-bottom: none; }
             
-            /* Ensure page breaks don't chop interaction cards */
-            .interaction-card { break-inside: avoid; page-break-inside: avoid; border: 1px solid #e2e8f0; margin-bottom: 1rem; }
-            .section-break { break-before: always; page-break-before: always; }
+            /* Compact interaction cards */
+            .interaction-card { break-inside: avoid; page-break-inside: avoid; border: 1px solid #e2e8f0; margin-bottom: 0.25rem !important; padding: 0.35rem 0.5rem !important; }
             
             /* Print-friendly colors */
             .text-indigo-600 { color: #4f46e5 !important; }
@@ -124,12 +124,12 @@
         const BrainCircuit = (props) => <IconWrapper {...props}><path d="M12 4.5a2.5 2.5 0 0 0-4.96-.46 2.5 2.5 0 0 0-1.98 3 2.5 2.5 0 0 0-1.32 3 2.5 2.5 0 0 0-.02 3 2.5 2.5 0 0 0 2.77 3 2.5 2.5 0 0 0 5.51.4"></path><path d="M12 2v2"></path><path d="M12 22v-2"></path><path d="M12 12v-6.5"></path><path d="M12 12h-6.5"></path><path d="M20 10.5a2.5 2.5 0 0 0-4.96-.46 2.5 2.5 0 0 0-1.98 3 2.5 2.5 0 0 0-1.32 3 2.5 2.5 0 0 0-.02 3 2.5 2.5 0 0 0 2.77 3 2.5 2.5 0 0 0 5.51.4"></path><path d="M16 8V6"></path><path d="M16 12v-2"></path><path d="M12 12h6.5"></path></IconWrapper>;
         const Lock = (props) => <IconWrapper {...props}><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></IconWrapper>;
         const Save = (props) => <IconWrapper {...props}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></IconWrapper>;
-        const Folder = (props) => <IconWrapper {...props}><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></IconWrapper>;
+        const Folder = (props) => <IconWrapper {...props}><path d="M22 19a2 2 0 0 1-2-2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></IconWrapper>;
         const Trash2 = (props) => <IconWrapper {...props}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></IconWrapper>;
         const Pill = (props) => <IconWrapper {...props}><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"></line></IconWrapper>;
         const Cloud = (props) => <IconWrapper {...props}><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></IconWrapper>;
         const Edit = (props) => <IconWrapper {...props}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></IconWrapper>;
-        const Settings = (props) => <IconWrapper {...props}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></IconWrapper>;
+        const Settings = (props) => <IconWrapper {...props}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></IconWrapper>;
         const Printer = (props) => <IconWrapper {...props}><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></IconWrapper>;
         const ExternalLink = (props) => <IconWrapper {...props}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></IconWrapper>;
         const X = (props) => <IconWrapper {...props}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></IconWrapper>;
@@ -141,6 +141,7 @@
         const Sparkles = (props) => <IconWrapper {...props}><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275Z"></path></IconWrapper>;
         const Calendar = (props) => <IconWrapper {...props}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></IconWrapper>;
         const Clock = (props) => <IconWrapper {...props}><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></IconWrapper>;
+        const Table = (props) => <IconWrapper {...props}><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></IconWrapper>;
 
         // --- Mock Data & Constants ---
         const SEVERITY_COLORS = {
@@ -225,12 +226,12 @@
             const pubmedUrl = `https://pubmed.ncbi.nlm.nih.gov/?term=${encodedPair}+interaction`;
 
             return (
-                <div className="mt-4 pt-3 border-t border-slate-100 flex flex-wrap gap-2 items-center text-xs">
+                <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap gap-2 items-center text-[9px] print:text-[8px]">
                     <span className="font-bold text-slate-500 flex items-center gap-1"><SearchIcon className="w-3 h-3"/> Verify:</span>
-                    <a href={scholarUrl} target="_blank" className="bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 hover:text-indigo-600 px-2 py-1 rounded transition-colors">Google Scholar</a>
-                    <a href={accUrl} target="_blank" className="bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 hover:text-indigo-600 px-2 py-1 rounded transition-colors">ACC.org</a>
-                    <a href={lexiUrl} target="_blank" className="bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 hover:text-indigo-600 px-2 py-1 rounded transition-colors">Lexicomp</a>
-                    <a href={pubmedUrl} target="_blank" className="bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 hover:text-indigo-600 px-2 py-1 rounded transition-colors">PubMed</a>
+                    <a href={scholarUrl} target="_blank" className="bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 hover:text-indigo-600 px-2 py-0.5 rounded transition-colors">Google Scholar</a>
+                    <a href={accUrl} target="_blank" className="bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 hover:text-indigo-600 px-2 py-0.5 rounded transition-colors">ACC.org</a>
+                    <a href={lexiUrl} target="_blank" className="bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 hover:text-indigo-600 px-2 py-0.5 rounded transition-colors">Lexicomp</a>
+                    <a href={pubmedUrl} target="_blank" className="bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 hover:text-indigo-600 px-2 py-0.5 rounded transition-colors">PubMed</a>
                 </div>
             );
         };
@@ -239,109 +240,109 @@
         const PrintableReportContent = ({ patient, drugs, interactions }) => (
             <div id="print-container" className="bg-white text-black w-full mx-auto">
                 {/* Full-width colored header bar */}
-                <div className="bg-gradient-to-r from-indigo-700 to-blue-600 text-white p-8 mb-6 break-inside-avoid print:w-full">
+                <div className="bg-gradient-to-r from-indigo-700 to-blue-600 text-white p-6 mb-4 break-inside-avoid print:w-full print:p-3 print:mb-3">
                     <div className="flex justify-between items-center">
-                         <div className="flex items-center gap-4">
-                            <div className="bg-white/10 p-2 rounded-lg">
-                                <Activity className="w-12 h-12 text-white"/> 
+                         <div className="flex items-center gap-3">
+                            <div className="bg-white/10 p-1.5 rounded-lg">
+                                <Activity className="w-8 h-8 text-white print:w-6 print:h-6"/> 
                             </div>
                             <div>
-                                <h1 className="text-3xl font-extrabold tracking-tight">ClinIQ <span className="text-sm align-top bg-white/20 px-2 py-0.5 rounded text-white font-medium">PRO</span></h1>
-                                <p className="text-indigo-100 font-medium text-sm mt-0.5 opacity-90">Pharmacogenomics & Interaction Intelligence</p>
+                                <h1 className="text-2xl font-extrabold tracking-tight print:text-lg">ClinIQ <span className="text-xs align-top bg-white/20 px-1.5 py-0.5 rounded text-white font-medium print:text-[8px]">PRO</span></h1>
+                                <p className="text-indigo-100 font-medium text-xs mt-0.5 opacity-90 print:text-[9px]">Pharmacogenomics & Interaction Intelligence</p>
                             </div>
                         </div>
                         <div className="text-right">
-                            <div className="text-xs font-bold uppercase tracking-widest text-indigo-200 mb-1">Report Generated</div>
-                            <div className="text-lg font-bold">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                            <div className="text-xs opacity-75">{new Date().toLocaleTimeString()}</div>
+                            <div className="text-[10px] font-bold uppercase tracking-widest text-indigo-200 mb-0.5 print:text-[8px]">Report Generated</div>
+                            <div className="text-sm font-bold print:text-xs">{new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                            <div className="text-[10px] opacity-75 print:text-[8px]">{new Date().toLocaleTimeString()}</div>
                         </div>
                     </div>
                 </div>
 
-                <div className="report-content p-8">
+                <div className="report-content p-6 print:p-0">
                     {/* Header Info */}
-                    <div className="flex justify-between items-end border-b-4 border-slate-800 pb-4 mb-8">
+                    <div className="flex justify-between items-end border-b-2 border-slate-800 pb-2 mb-4 print:mb-2">
                         <div>
-                             <div className="text-xs text-slate-400 uppercase tracking-widest font-bold mb-1">Patient Case Identifier</div>
-                             <div className="font-mono font-bold text-4xl tracking-wider text-indigo-900">{patient.id}</div>
-                             {patient.ward && <div className="text-sm font-semibold text-slate-500 mt-1">Ward: {patient.ward}</div>}
-                             {patient.admissionDate && <div className="text-sm font-semibold text-slate-500 mt-1">Admitted: {patient.admissionDate} ({patient.daysAdmitted} days)</div>}
+                             <div className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mb-0.5 print:text-[8px]">Patient Case Identifier</div>
+                             <div className="font-mono font-bold text-2xl tracking-wider text-indigo-900 print:text-lg print:leading-none">{patient.id}</div>
+                             {patient.ward && <div className="text-xs font-semibold text-slate-500 mt-1 print:text-[9px] print:mt-0.5">Ward: {patient.ward}</div>}
+                             {patient.admissionDate && <div className="text-xs font-semibold text-slate-500 mt-0.5 print:text-[9px]">Admitted: {patient.admissionDate} ({patient.daysAdmitted} days)</div>}
                         </div>
                         <div className="text-right">
-                            <div className="text-sm font-bold text-slate-700">Confidential Medical Record</div>
-                            <div className="text-xs text-slate-500">Authorized Use Only</div>
+                            <div className="text-xs font-bold text-slate-700 print:text-[9px]">Confidential Medical Record</div>
+                            <div className="text-[10px] text-slate-500 print:text-[8px]">Authorized Use Only</div>
                         </div>
                     </div>
 
                     {/* Patient Info Grid */}
-                    <div className="bg-slate-5 border border-slate-200 rounded-lg p-6 mb-8 shadow-sm">
-                        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                            <User className="w-4 h-4"/> Clinical Demographics
+                    <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-4 shadow-sm print:p-2 print:mb-3">
+                        <h2 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 flex items-center gap-1 print:text-[8px]">
+                            <User className="w-3 h-3"/> Clinical Demographics
                         </h2>
-                        <div className="grid grid-cols-2 gap-y-4 gap-x-12">
-                            <div className="flex justify-between border-b border-dotted border-slate-300 pb-1 gap-4">
-                                <span className="text-slate-500 text-sm font-medium whitespace-nowrap">Age / Sex</span>
-                                <span className="font-bold text-slate-900 text-right break-words">{patient.age || 'N/A'} Years / {patient.gender}</span>
+                        <div className="grid grid-cols-2 gap-y-1.5 gap-x-8 print:gap-x-4 print:gap-y-1 text-xs print:text-[9px]">
+                            <div className="flex justify-between border-b border-dotted border-slate-300 pb-0.5 gap-2">
+                                <span className="text-slate-500 font-medium whitespace-nowrap">Age / Sex</span>
+                                <span className="font-bold text-slate-900 text-right break-words">{patient.age || 'N/A'} Y / {patient.gender}</span>
                             </div>
-                            <div className="flex justify-between border-b border-dotted border-slate-300 pb-1 gap-4">
-                                <span className="text-slate-500 text-sm font-medium whitespace-nowrap">Weight</span>
+                            <div className="flex justify-between border-b border-dotted border-slate-300 pb-0.5 gap-2">
+                                <span className="text-slate-500 font-medium whitespace-nowrap">Weight</span>
                                 <span className="font-bold text-slate-900 text-right">{patient.weight || 'N/A'} kg</span>
                             </div>
                             
                             {/* Labs Display in Print */}
                             {patient.rft_enabled && (
-                                <div className="flex justify-between border-b border-dotted border-slate-300 pb-1 gap-4">
-                                    <span className="text-slate-500 text-sm font-medium whitespace-nowrap">Serum Creatinine</span>
+                                <div className="flex justify-between border-b border-dotted border-slate-300 pb-0.5 gap-2">
+                                    <span className="text-slate-500 font-medium whitespace-nowrap">S. Creatinine</span>
                                     <span className="font-bold text-slate-900 text-right">{patient.serum_creatinine || 'N/A'} mg/dL</span>
                                 </div>
                             )}
                             {patient.lft_enabled && (
-                                <div className="flex justify-between border-b border-dotted border-slate-300 pb-1 gap-4">
-                                    <span className="text-slate-500 text-sm font-medium whitespace-nowrap">Total Bilirubin</span>
+                                <div className="flex justify-between border-b border-dotted border-slate-300 pb-0.5 gap-2">
+                                    <span className="text-slate-500 font-medium whitespace-nowrap">T. Bilirubin</span>
                                     <span className="font-bold text-slate-900 text-right">{patient.bilirubin || 'N/A'} mg/dL</span>
                                 </div>
                             )}
 
-                            <div className="flex justify-between border-b border-dotted border-slate-300 pb-1 gap-4">
-                                <span className="text-slate-500 text-sm font-medium whitespace-nowrap">Primary Diagnosis</span>
+                            <div className="flex justify-between border-b border-dotted border-slate-300 pb-0.5 gap-2">
+                                <span className="text-slate-500 font-medium whitespace-nowrap">Diagnosis</span>
                                 <span className="font-bold text-slate-900 text-right break-words">{patient.primary_diagnosis || 'Not Specified'}</span>
                             </div>
-                            <div className="flex justify-between border-b border-dotted border-slate-300 pb-1 col-span-2 gap-4">
-                                <span className="text-slate-500 text-sm font-medium whitespace-nowrap">Comorbidities</span>
+                            <div className="flex justify-between border-b border-dotted border-slate-300 pb-0.5 col-span-2 gap-2">
+                                <span className="text-slate-500 font-medium whitespace-nowrap">Comorbidities</span>
                                 <span className="font-bold text-slate-900 text-right break-words">{patient.comorbidities || 'None Listed'}</span>
                             </div>
                         </div>
                     </div>
 
                     {/* Medications Table */}
-                    <div className="mb-10">
-                        <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2 border-b pb-2">
-                            <Pill className="w-5 h-5 text-indigo-600"/> Pharmacotherapy Schedule
+                    <div className="mb-6 print:mb-3">
+                        <h2 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-1.5 border-b pb-1 print:text-[10px]">
+                            <Pill className="w-4 h-4 text-indigo-600 print:w-3 print:h-3"/> Pharmacotherapy Schedule
                         </h2>
-                        <table className="w-full text-sm text-left border rounded-lg overflow-hidden shadow-sm">
+                        <table className="w-full text-xs text-left border rounded overflow-hidden shadow-sm print:text-[8px]">
                             <thead className="bg-slate-100 text-slate-700 font-semibold border-b">
                             <tr>
-                                <th className="p-3 border-r w-1/4">Medication</th>
-                                <th className="p-3 border-r">Dose/Route</th>
+                                <th className="p-2 border-r w-1/4 print:p-1">Medication</th>
+                                <th className="p-2 border-r print:p-1">Dose/Route</th>
                                 {/* Generate Day Headers based on days admitted */}
                                 {Array.from({ length: patient.daysAdmitted }, (_, i) => (
-                                    <th key={i} className="p-3 border-r text-center w-12">D{i+1}</th>
+                                    <th key={i} className="p-2 border-r text-center w-8 print:p-1">D{i+1}</th>
                                 ))}
                             </tr>
                             </thead>
                             <tbody className="divide-y">
                             {drugs.map((d, i) => (
                                 <tr key={i} className="even:bg-slate-50">
-                                <td className="p-3 font-bold text-slate-800 border-r">
+                                <td className="p-2 font-bold text-slate-800 border-r print:p-1">
                                     {d.name || 'Unnamed'} {d.brand ? <span className="text-slate-500 font-normal">({d.brand})</span> : ''}
                                 </td>
-                                <td className="p-3 border-r">
+                                <td className="p-2 border-r print:p-1">
                                     {d.dose || '-'} {d.freq} ({d.route})
                                 </td>
                                 {/* Render ticks for schedule */}
                                 {Array.from({ length: patient.daysAdmitted }, (_, dayIdx) => (
-                                    <td key={dayIdx} className="p-3 border-r text-center">
-                                        {d.schedule && d.schedule[dayIdx + 1] ? <CheckCircle className="w-4 h-4 text-green-600 mx-auto"/> : <span className="text-slate-200">-</span>}
+                                    <td key={dayIdx} className="p-2 border-r text-center print:p-1">
+                                        {d.schedule && d.schedule[dayIdx + 1] ? <span className="text-green-600 font-bold">✓</span> : <span className="text-slate-200">-</span>}
                                     </td>
                                 ))}
                                 </tr>
@@ -351,52 +352,54 @@
                     </div>
 
                     {/* Analysis Section */}
-                    <div className="mb-8">
-                        <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2 border-b pb-2">
-                            <AlertTriangle className="w-5 h-5 text-indigo-600"/> Daily Interaction Analysis
+                    <div className="mb-6 print:mb-3">
+                        <h2 className="text-sm font-bold text-slate-900 mb-2 flex items-center gap-1.5 border-b pb-1 print:text-[10px]">
+                            <AlertTriangle className="w-4 h-4 text-indigo-600 print:w-3 print:h-3"/> Daily Interaction Analysis
                         </h2>
                         {interactions.length > 0 ? (
-                            <div className="space-y-6">
+                            <div className="space-y-3 print:space-y-1.5">
                             {interactions.map((item, idx) => (
-                                <div key={idx} className="interaction-card border border-slate-200 rounded-lg p-5 shadow-sm bg-white relative overflow-hidden">
-                                    <div className={`absolute top-0 left-0 w-2 h-full`} style={{ backgroundColor: SEVERITY_HEX[item.severity] || '#ccc' }}></div>
-                                    <div className="pl-4">
-                                        <div className="flex justify-between items-start mb-4 border-b border-slate-100 pb-3">
+                                <div key={idx} className="interaction-card border border-slate-200 rounded p-3 shadow-sm bg-white relative overflow-hidden print:p-1.5">
+                                    <div className={`absolute top-0 left-0 w-1.5 h-full`} style={{ backgroundColor: SEVERITY_HEX[item.severity] || '#ccc' }}></div>
+                                    <div className="pl-3 print:pl-2">
+                                        <div className="flex justify-between items-start mb-2 border-b border-slate-100 pb-1.5 print:mb-1 print:pb-1">
                                             <div>
-                                                <h3 className="font-bold text-xl text-slate-900 mb-1">{item.pair}</h3>
-                                                <div className="flex items-center gap-2">
-                                                    <SeverityBadge level={item.severity} />
-                                                    <span className="text-xs font-semibold text-slate-500 px-2 border-l border-slate-300">{item.interaction_type}</span>
+                                                <h3 className="font-bold text-sm text-slate-900 mb-0.5 print:text-[10px] leading-tight">{item.pair}</h3>
+                                                <div className="flex items-center gap-1.5">
+                                                    <span className={`px-1.5 py-0.5 rounded-[4px] text-[9px] font-bold border uppercase tracking-wide flex items-center gap-1 print:text-[7px] print:px-1`} style={{ color: SEVERITY_HEX[item.severity], borderColor: SEVERITY_HEX[item.severity] }}>
+                                                        {item.severity} Risk
+                                                    </span>
+                                                    <span className="text-[10px] font-semibold text-slate-500 px-1.5 border-l border-slate-300 print:text-[8px]">{item.interaction_type}</span>
                                                 </div>
                                             </div>
                                             <div className="text-right">
                                                 {item.occurrence && (
-                                                    <div className="mb-1 text-xs font-bold text-slate-500 bg-slate-100 px-2 py-1 rounded flex items-center gap-1 justify-end">
-                                                        <Calendar className="w-3 h-3"/> Occurrence: {item.occurrence}
+                                                    <div className="mb-0.5 text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded flex items-center gap-1 justify-end print:text-[7px]">
+                                                        <Calendar className="w-2.5 h-2.5"/> {item.occurrence}
                                                     </div>
                                                 )}
-                                                <span className="text-xs font-bold text-green-600">AI-Verified</span>
+                                                <span className="text-[9px] font-bold text-green-600 print:text-[7px]">AI-Verified</span>
                                             </div>
                                         </div>
                                         
                                         {/* Streamlined Line-by-Line Content */}
-                                        <div className="space-y-3 text-sm mb-4">
-                                            <div className="flex items-start gap-2">
-                                                <span className="w-24 shrink-0 font-bold text-slate-500 uppercase text-xs pt-0.5 tracking-wider">Mechanism</span>
+                                        <div className="space-y-1 text-xs print:text-[8.5px] print:space-y-0.5 mb-2 print:mb-1">
+                                            <div className="flex items-start gap-1.5">
+                                                <span className="w-20 shrink-0 font-bold text-slate-500 uppercase text-[10px] pt-0.5 tracking-wider print:text-[7px] print:w-16">Mechanism</span>
                                                 <span className="text-slate-800 font-medium break-words leading-tight">{item.mechanism_short}</span>
                                             </div>
-                                            <div className="flex items-start gap-2">
-                                                <span className="w-24 shrink-0 font-bold text-slate-500 uppercase text-xs pt-0.5 tracking-wider">Significance</span>
+                                            <div className="flex items-start gap-1.5">
+                                                <span className="w-20 shrink-0 font-bold text-slate-500 uppercase text-[10px] pt-0.5 tracking-wider print:text-[7px] print:w-16">Significance</span>
                                                 <span className="text-slate-800 font-medium break-words leading-tight">{item.clinical_significance}</span>
                                             </div>
-                                            <div className="flex items-start gap-2">
-                                                <span className="w-24 shrink-0 font-bold text-slate-500 uppercase text-xs pt-0.5 tracking-wider">Action</span>
+                                            <div className="flex items-start gap-1.5">
+                                                <span className="w-20 shrink-0 font-bold text-slate-500 uppercase text-[10px] pt-0.5 tracking-wider print:text-[7px] print:w-16">Action</span>
                                                 <span className="text-indigo-800 font-bold break-words leading-tight">{item.recommendation}</span>
                                             </div>
                                             {item.dose_adjustment && (
-                                                <div className="flex items-start gap-2 mt-2 bg-indigo-50 p-3 rounded border border-indigo-100">
-                                                    <span className="w-24 shrink-0 font-bold text-indigo-700 uppercase text-xs pt-0.5 tracking-wider flex items-center gap-1">
-                                                        <Activity className="w-3 h-3"/> Adj. Dose
+                                                <div className="flex items-start gap-1.5 mt-1 bg-indigo-50 p-1.5 rounded border border-indigo-100 print:mt-0.5 print:p-1">
+                                                    <span className="w-20 shrink-0 font-bold text-indigo-700 uppercase text-[10px] pt-0.5 tracking-wider flex items-center gap-1 print:text-[7px] print:w-16">
+                                                        Adj. Dose
                                                     </span>
                                                     <span className="text-indigo-900 font-semibold break-words leading-tight">{item.dose_adjustment}</span>
                                                 </div>
@@ -404,16 +407,12 @@
                                         </div>
                                         
                                         {/* Render References as Links */}
-                                        <div className="mt-4 flex flex-wrap gap-3 justify-end text-xs pt-2 border-t border-slate-50">
+                                        <div className="mt-2 flex flex-wrap gap-2 justify-end text-[10px] pt-1.5 border-t border-slate-50 print:text-[8px] print:mt-1 print:pt-1">
                                             <span className="text-slate-400 italic self-center">Evidence:</span>
                                             {item.references && item.references.map((ref, rIdx) => {
                                                 const title = typeof ref === 'string' ? ref : ref.title;
-                                                const url = `https://scholar.google.com/scholar?q=${encodeURIComponent(title)}`;
-                                                
                                                 return (
-                                                    <a key={rIdx} href={url} target="_blank" className="flex items-center gap-1 bg-slate-100 hover:bg-indigo-50 text-indigo-600 px-2 py-1 rounded border border-slate-200 transition-colors">
-                                                        {title} <ExternalLink className="w-3 h-3"/>
-                                                    </a>
+                                                    <span key={rIdx} className="text-slate-600 bg-slate-50 px-1 rounded border border-slate-200">{title}</span>
                                                 );
                                             })}
                                         </div>
@@ -422,34 +421,34 @@
                             ))}
                             </div>
                         ) : (
-                            <p className="text-slate-500 italic p-6 border rounded-lg text-center bg-slate-50">No clinically significant interactions detected.</p>
+                            <p className="text-slate-500 italic p-4 border rounded text-center bg-slate-50 text-xs print:text-[9px]">No clinically significant interactions detected.</p>
                         )}
                     </div>
 
                     {/* Disposition & Outcome */}
-                    <div className="mb-8 break-inside-avoid bg-indigo-50 border border-indigo-100 p-5 rounded-lg shadow-sm">
-                        <h2 className="text-sm font-bold text-indigo-800 uppercase mb-4 border-b border-indigo-200 pb-2">Final Clinical Disposition</h2>
-                        <div className="grid grid-cols-2 gap-8">
+                    <div className="mb-4 break-inside-avoid bg-indigo-50 border border-indigo-100 p-4 rounded shadow-sm print:mb-2 print:p-2">
+                        <h2 className="text-xs font-bold text-indigo-800 uppercase mb-2 border-b border-indigo-200 pb-1 print:text-[9px]">Final Clinical Disposition</h2>
+                        <div className="grid grid-cols-2 gap-6 print:gap-4 text-sm print:text-[10px]">
                             <div>
-                                <span className="text-xs text-indigo-400 block uppercase font-bold mb-1">Intervention Taken</span>
-                                <span className="font-bold text-indigo-900 text-lg break-words">{patient.intervention}</span>
+                                <span className="text-[10px] text-indigo-400 block uppercase font-bold mb-0.5 print:text-[8px]">Intervention Taken</span>
+                                <span className="font-bold text-indigo-900 break-words">{patient.intervention}</span>
                             </div>
                             <div>
-                                <span className="text-xs text-indigo-400 block uppercase font-bold mb-1">Outcome Status</span>
-                                <span className="font-bold text-indigo-900 text-lg break-words">{patient.outcome}</span>
+                                <span className="text-[10px] text-indigo-400 block uppercase font-bold mb-0.5 print:text-[8px]">Outcome Status</span>
+                                <span className="font-bold text-indigo-900 break-words">{patient.outcome}</span>
                             </div>
                         </div>
                     </div>
                     
                     {/* Footer */}
-                    <div className="border-t-4 border-slate-800 pt-8 mt-12 flex justify-between items-end break-inside-avoid">
-                        <div className="text-xs text-slate-400 max-w-md">
+                    <div className="border-t-2 border-slate-800 pt-4 mt-6 flex justify-between items-end break-inside-avoid print:pt-2 print:mt-2">
+                        <div className="text-[10px] text-slate-400 max-w-sm print:text-[8px]">
                             <p className="font-bold text-slate-900">Generated by ClinIQ AI-Assisted Platform</p>
-                            <p className="mt-1">This report is intended for use by healthcare professionals only. The interactions and recommendations are based on available pharmacological data and AI synthesis but must be verified against official institutional protocols.</p>
+                            <p className="mt-0.5 leading-tight">This report is intended for use by healthcare professionals only. Interactions and recommendations must be verified against official institutional protocols.</p>
                         </div>
                         <div className="text-center">
-                            <div className="h-16 w-64 border-b border-slate-400 mb-2"></div>
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Clinician Signature / Date</p>
+                            <div className="h-8 w-48 border-b border-slate-400 mb-1 print:h-6 print:w-32"></div>
+                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest print:text-[7px]">Clinician Signature / Date</p>
                         </div>
                     </div>
                 </div>
@@ -520,10 +519,11 @@
 
           const [interactions, setInteractions] = useState([]);
           const [savedRecords, setSavedRecords] = useState([]); 
-          const [chatQuery, setChatQuery] = useState('');
-          const [chatHistory, setChatHistory] = useState([
-            { role: 'system', text: 'I am your Clinical AI Analyst. I have access to the current patient profile. Ask me about trends, mortality risks, or specific mechanism queries.' }
-          ]);
+
+          // STATE FOR EXPORT TYPE (Excel vs SPSS)
+          const [exportType, setExportType] = useState('excel');
+          // NEW STATE FOR SPSS CODEBOOK
+          const [showCodebook, setShowCodebook] = useState(false);
 
           const fetchWithBackoff = async (url, options) => {
               let delay = 1000;
@@ -705,7 +705,6 @@
                     setPatient(getInitialPatientState());
                     setDrugs([{ id: 1, name: '', brand: '', dose: '', freq: 'QD', route: 'Oral', schedule: {1:true, 2:true, 3:true} }]);
                     setInteractions([]);
-                    setChatHistory([{ role: 'system', text: 'I am your Clinical AI Analyst. I have access to the current patient profile. Ask me about trends, mortality risks, or specific mechanism queries.' }]);
                     setActiveTab('intake');
                     setNotification({ type: 'info', message: 'New Patient Case Started' });
                     setConfirmModal({ isOpen: false });
@@ -911,74 +910,167 @@
             setLoading(false);
           };
 
-          const handleAskData = async () => {
-            if (!chatQuery.trim()) return;
-            
-            const newHistory = [...chatHistory, { role: 'user', text: chatQuery }];
-            setChatHistory(newHistory);
-            setChatQuery('');
-            setLoading(true);
+          // --- Distinct Data Export Logic ---
+          
+          // Generalized Normal Data (Human Readable, Descriptive, Strings, Lists)
+          const generateNormalData = () => {
+              return savedRecords.map(rec => {
+                  const demo = rec.demographics || {};
+                  const meds = rec.medications || [];
+                  const inters = rec.interactions || [];
+                  const disp = rec.disposition || {};
 
-            let dailyScheduleText = "";
-            for (let i = 1; i <= patient.daysAdmitted; i++) {
-                const dailyMeds = drugs
-                    .filter(d => d.schedule && d.schedule[i])
-                    .map(d => d.name);
-                if(dailyMeds.length > 0) dailyScheduleText += `D${i}:[${dailyMeds.join(',')}], `;
-            }
+                  // Helpers for calculations
+                  const numComorbidities = demo.comorbidities ? demo.comorbidities.split(',').filter(c => c.trim() !== '').length : 0;
+                  const hasRenalImpairment = (demo.crcl && parseInt(demo.crcl) < 60) || demo.rft_enabled ? 1 : 0;
+                  const hasHepaticImpairment = demo.lft_enabled ? 1 : 0;
+                  const totalDrugs = meds.length;
+                  const polypharmacy = totalDrugs >= 5 ? 1 : 0;
+                  
+                  const majorCount = inters.filter(i => i.severity === 'Major').length;
+                  const moderateCount = inters.filter(i => i.severity === 'Moderate').length;
+                  const minorCount = inters.filter(i => i.severity === 'Minor').length;
+                  const monitoringCount = inters.filter(i => i.severity === 'Monitoring').length;
+                  
+                  const pkCount = inters.filter(i => i.interaction_type && i.interaction_type.includes('PK')).length;
+                  const pdCount = inters.filter(i => i.interaction_type && i.interaction_type.includes('PD')).length;
+                  const diseaseCount = inters.filter(i => i.interaction_type && i.interaction_type.includes('Disease')).length;
+                  
+                  const highestSeverity = majorCount > 0 ? 'Major' : (moderateCount > 0 ? 'Moderate' : (minorCount > 0 ? 'Minor' : (monitoringCount > 0 ? 'Monitoring' : 'None')));
+                  
+                  const interventionRequired = disp.intervention && disp.intervention !== 'Monitoring Only' ? 1 : 0;
+                  const icuTransfer = demo.ward === 'ICU (Intensive Care)' ? 1 : 0;
+                  const mortality = disp.outcome === 'Deceased' ? 1 : 0;
 
-            const context = `
-              You are the "Ask the Data" module of ClinIQ.
-              Current Patient Dataset:
-              - Demographics: ${patient.age}y ${patient.gender}, CrCl ${patient.crcl}.
-              - Admission: ${patient.admissionDate} for ${patient.daysAdmitted} days.
-              - Labs: Creatinine: ${patient.serum_creatinine}, Bilirubin: ${patient.bilirubin}.
-              - Primary Diagnosis: ${patient.primary_diagnosis}.
-              - Daily Schedule: ${dailyScheduleText}
-              - Known Interactions: ${JSON.stringify(interactions)}.
-
-              User Query: "${chatQuery}"
-
-              Instructions:
-              - Answer strictly based on the provided data.
-              - Be concise, professional, and audit-ready.
-            `;
-
-            try {
-              const response = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${geminiKey || apiKey}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ contents: [{ parts: [{ text: context }] }] })
+                  return {
+                      Patient_ID: rec.patientId,
+                      Age: demo.age || '',
+                      Gender: demo.gender || '',
+                      Ward_Type: demo.ward || '',
+                      Length_of_Stay_Days: demo.daysAdmitted || 0,
+                      Primary_Diagnosis: demo.primary_diagnosis || '',
+                      Number_of_Comorbidities: numComorbidities,
+                      Renal_Impairment: hasRenalImpairment ? 'Yes' : 'No',
+                      Hepatic_Impairment: hasHepaticImpairment ? 'Yes' : 'No',
+                      Total_Number_of_Drugs: totalDrugs,
+                      Polypharmacy: polypharmacy ? 'Yes' : 'No',
+                      Total_DDIs: inters.length,
+                      Major_DDI_Count: majorCount,
+                      Moderate_DDI_Count: moderateCount,
+                      Minor_DDI_Count: minorCount,
+                      Monitoring_DDI_Count: monitoringCount,
+                      Pharmacokinetic_DDI_Count: pkCount,
+                      Pharmacodynamic_DDI_Count: pdCount,
+                      Drug_Disease_Interaction_Count: diseaseCount,
+                      AI_Detected_DDIs: inters.length, 
+                      Clinician_Detected_DDIs: 0, 
+                      Highest_DDI_Severity: highestSeverity,
+                      Intervention_Required: interventionRequired ? 'Yes' : 'No',
+                      Adverse_Drug_Event: 0, 
+                      ICU_Transfer: icuTransfer ? 'Yes' : 'No',
+                      Mortality: mortality ? 'Yes' : 'No',
+                      Final_Outcome: disp.outcome || ''
+                  };
               });
-              
-              const data = await response.json();
-              const answer = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response generated.";
-              
-              setChatHistory([...newHistory, { role: 'ai', text: answer }]);
-            } catch (e) {
-              console.error(e);
-              setChatHistory([...newHistory, { role: 'ai', text: "System Offline: Unable to query clinical engine." }]);
-            }
-            setLoading(false);
           };
 
-          const exportData = (format) => {
-            if (format === 'csv') {
-              let csvContent = "data:text/csv;charset=utf-8,";
-              csvContent += "Type,Pair,Severity,Timing,Mechanism,Recommendation\n";
-              interactions.forEach(i => {
-                csvContent += `Interaction,"${i.pair}",${i.severity},"${i.occurrence}","${i.mechanism_short}","${i.recommendation}"\n`;
+          // SPSS Format (Binary flags, strict numerics, isolated variables for stats)
+          const generateSpssData = () => {
+              return savedRecords.map(rec => {
+                  const demo = rec.demographics || {};
+                  const meds = rec.medications || [];
+                  const inters = rec.interactions || [];
+                  const disp = rec.disposition || {};
+
+                  // Helpers for calculations
+                  const numComorbidities = demo.comorbidities ? demo.comorbidities.split(',').filter(c => c.trim() !== '').length : 0;
+                  const hasRenalImpairment = (demo.crcl && parseInt(demo.crcl) < 60) || demo.rft_enabled ? 1 : 0;
+                  const hasHepaticImpairment = demo.lft_enabled ? 1 : 0;
+                  const totalDrugs = meds.length;
+                  const polypharmacy = totalDrugs >= 5 ? 1 : 0;
+                  
+                  const majorCount = inters.filter(i => i.severity === 'Major').length;
+                  const moderateCount = inters.filter(i => i.severity === 'Moderate').length;
+                  const minorCount = inters.filter(i => i.severity === 'Minor').length;
+                  const monitoringCount = inters.filter(i => i.severity === 'Monitoring').length;
+                  
+                  const pkCount = inters.filter(i => i.interaction_type && i.interaction_type.includes('PK')).length;
+                  const pdCount = inters.filter(i => i.interaction_type && i.interaction_type.includes('PD')).length;
+                  const diseaseCount = inters.filter(i => i.interaction_type && i.interaction_type.includes('Disease')).length;
+                  
+                  const highestSeverity = majorCount > 0 ? 'Major' : (moderateCount > 0 ? 'Moderate' : (minorCount > 0 ? 'Minor' : (monitoringCount > 0 ? 'Monitoring' : 'None')));
+                  
+                  const interventionRequired = disp.intervention && disp.intervention !== 'Monitoring Only' ? 1 : 0;
+                  const icuTransfer = demo.ward === 'ICU (Intensive Care)' ? 1 : 0;
+                  const mortality = disp.outcome === 'Deceased' ? 1 : 0;
+
+                  return {
+                      Patient_ID: rec.patientId,
+                      Age: demo.age || '',
+                      Gender: demo.gender || '',
+                      Ward_Type: demo.ward || '',
+                      Length_of_Stay_Days: demo.daysAdmitted || 0,
+                      Primary_Diagnosis: demo.primary_diagnosis || '',
+                      Number_of_Comorbidities: numComorbidities,
+                      Renal_Impairment: hasRenalImpairment,
+                      Hepatic_Impairment: hasHepaticImpairment,
+                      Total_Number_of_Drugs: totalDrugs,
+                      Polypharmacy: polypharmacy,
+                      Total_DDIs: inters.length,
+                      Major_DDI_Count: majorCount,
+                      Moderate_DDI_Count: moderateCount,
+                      Minor_DDI_Count: minorCount,
+                      Monitoring_DDI_Count: monitoringCount,
+                      Pharmacokinetic_DDI_Count: pkCount,
+                      Pharmacodynamic_DDI_Count: pdCount,
+                      Drug_Disease_Interaction_Count: diseaseCount,
+                      AI_Detected_DDIs: inters.length, 
+                      Clinician_Detected_DDIs: 0, 
+                      Highest_DDI_Severity: highestSeverity,
+                      Intervention_Required: interventionRequired,
+                      Adverse_Drug_Event: 0, 
+                      ICU_Transfer: icuTransfer,
+                      Mortality: mortality,
+                      Final_Outcome: disp.outcome || ''
+                  };
               });
+          };
+
+          const exportCurrentData = () => {
+              // Select the data format based on user toggle
+              const currentData = exportType === 'spss' ? generateSpssData() : generateNormalData();
+              
+              if (currentData.length === 0) {
+                  setNotification({ type: 'info', message: 'No records available to export.' });
+                  return;
+              }
+
+              // Extract headers from the first object
+              const headers = Object.keys(currentData[0]);
+              let csvContent = "data:text/csv;charset=utf-8,";
+              
+              // Add headers row
+              csvContent += headers.join(",") + "\n";
+              
+              // Add data rows
+              currentData.forEach(row => {
+                  const values = headers.map(header => {
+                      const val = row[header] === null || row[header] === undefined ? '' : row[header];
+                      // Escape strings containing commas
+                      return typeof val === 'string' && val.includes(',') ? `"${val}"` : val;
+                  });
+                  csvContent += values.join(",") + "\n";
+              });
+
+              // Set the downloaded file name appropriately
+              const prefix = exportType === 'spss' ? 'spss' : 'generalized';
               const encodedUri = encodeURI(csvContent);
               const link = document.createElement("a");
               link.setAttribute("href", encodedUri);
-              link.setAttribute("download", `clinical_report_${patient.id}.csv`);
+              link.setAttribute("download", `cliniq_${prefix}_export_${new Date().toISOString().split('T')[0]}.csv`);
               document.body.appendChild(link);
               link.click();
               document.body.removeChild(link);
-            } else {
-                openPrintModal();
-            }
           };
 
           // --- Views ---
@@ -1321,9 +1413,6 @@
                    <button onClick={() => openPrintModal()} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center gap-2 shadow-sm font-bold">
                        <FileText className="w-4 h-4"/> Download Report as PDF
                    </button>
-                   <button onClick={() => exportData('csv')} className="px-4 py-2 border rounded hover:bg-slate-50 flex items-center gap-2">
-                       <Download className="w-4 h-4"/> Export CSV
-                   </button>
                 </div>
               </div>
 
@@ -1483,47 +1572,165 @@
             );
           };
 
-          const renderChat = () => (
-            <div className="h-[600px] flex flex-col bg-white rounded-lg shadow-sm border border-slate-200">
-              <div className="p-4 border-b bg-slate-50 rounded-t-lg">
-                <h3 className="font-bold text-slate-800 flex items-center gap-2">
-                  <Database className="w-5 h-5 text-indigo-600"/> Ask the Clinical Data Analyst
-                </h3>
-                <p className="text-xs text-slate-500">Secure environment. Queries restricted to current dataset.</p>
-              </div>
+          const renderDataExport = () => {
+              const currentData = exportType === 'spss' ? generateSpssData() : generateNormalData();
+              const variablesList = currentData.length > 0 ? Object.keys(currentData[0]) : [];
               
-              <div className="flex-grow overflow-y-auto p-4 space-y-4">
-                {chatHistory.map((msg, idx) => (
-                  <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[80%] p-3 rounded-lg text-sm ${msg.role === 'user' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-800'}`}>
-                      {msg.role === 'system' && <span className="block text-xs font-bold mb-1 opacity-50">SYSTEM</span>}
-                      {msg.text}
-                    </div>
-                  </div>
-                ))}
-                {loading && <div className="text-xs text-slate-400 italic p-2">Analyst is typing...</div>}
-              </div>
+              // SPSS Data Dictionary Definition
+              const spssCodebook = [
+                  { variable: "Patient_ID", measure: "Nominal", type: "String", coding: "Alphanumeric ID (e.g., PT-123)" },
+                  { variable: "Age", measure: "Scale", type: "Numeric", coding: "Continuous integer (Years)" },
+                  { variable: "Gender", measure: "Nominal", type: "String", coding: "Text: 'Male', 'Female'" },
+                  { variable: "Ward_Type", measure: "Nominal", type: "String", coding: "Text: 'General Ward', 'ICU', etc." },
+                  { variable: "Length_of_Stay_Days", measure: "Scale", type: "Numeric", coding: "Continuous integer (Days)" },
+                  { variable: "Primary_Diagnosis", measure: "Nominal", type: "String", coding: "Free text diagnosis" },
+                  { variable: "Number_of_Comorbidities", measure: "Scale", type: "Numeric", coding: "Count of listed comorbidities (0, 1, 2...)" },
+                  { variable: "Renal_Impairment", measure: "Nominal", type: "Numeric", coding: "0 = No (CrCl >= 60), 1 = Yes (CrCl < 60 or monitored)" },
+                  { variable: "Hepatic_Impairment", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (LFT monitored)" },
+                  { variable: "Total_Number_of_Drugs", measure: "Scale", type: "Numeric", coding: "Total unique medications count" },
+                  { variable: "Polypharmacy", measure: "Nominal", type: "Numeric", coding: "0 = No (< 5 drugs), 1 = Yes (>= 5 drugs)" },
+                  { variable: "Total_DDIs", measure: "Scale", type: "Numeric", coding: "Total interactions detected by AI" },
+                  { variable: "Major_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of Major severity DDIs" },
+                  { variable: "Moderate_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of Moderate severity DDIs" },
+                  { variable: "Minor_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of Minor severity DDIs" },
+                  { variable: "Monitoring_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of Monitoring severity DDIs" },
+                  { variable: "Pharmacokinetic_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of PK mechanism DDIs" },
+                  { variable: "Pharmacodynamic_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of PD mechanism DDIs" },
+                  { variable: "Drug_Disease_Interaction_Count", measure: "Scale", type: "Numeric", coding: "Count of Drug-Disease interactions" },
+                  { variable: "AI_Detected_DDIs", measure: "Scale", type: "Numeric", coding: "Total AI detected DDIs (Same as Total_DDIs)" },
+                  { variable: "Clinician_Detected_DDIs", measure: "Scale", type: "Numeric", coding: "Placeholder (Default = 0)" },
+                  { variable: "Highest_DDI_Severity", measure: "Ordinal", type: "String", coding: "Text: 'Major' > 'Moderate' > 'Minor' > 'Monitoring' > 'None'" },
+                  { variable: "Intervention_Required", measure: "Nominal", type: "Numeric", coding: "0 = No (Monitoring Only), 1 = Yes (Dose Reduced, Discontinued, etc.)" },
+                  { variable: "Adverse_Drug_Event", measure: "Nominal", type: "Numeric", coding: "Placeholder (Default = 0)" },
+                  { variable: "ICU_Transfer", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (Ward is ICU)" },
+                  { variable: "Mortality", measure: "Nominal", type: "Numeric", coding: "0 = Alive, 1 = Deceased" },
+                  { variable: "Final_Outcome", measure: "Nominal", type: "String", coding: "Text: 'Stable', 'Recovered', 'Deceased', etc." }
+              ];
 
-              <div className="p-4 border-t">
-                <div className="flex gap-2">
-                  <input 
-                    className="flex-grow p-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none"
-                    placeholder="e.g. 'What is the mortality risk for this interaction?'"
-                    value={chatQuery}
-                    onChange={(e) => setChatQuery(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAskData()}
-                  />
-                  <button 
-                    onClick={handleAskData}
-                    disabled={loading}
-                    className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700"
-                  >
-                    Send
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
+              return (
+                  <div className="max-w-7xl mx-auto">
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+                          <div>
+                              <h2 className="text-2xl font-bold text-slate-900">Data Export Center</h2>
+                              <p className="text-slate-500 text-sm">Compile and download patient records for analysis.</p>
+                          </div>
+                          <div className="flex items-center gap-3">
+                              <div className="bg-white border rounded-lg p-1 flex">
+                                  <button 
+                                      onClick={() => { setExportType('excel'); setShowCodebook(false); }}
+                                      className={`px-4 py-1.5 text-sm font-bold rounded-md transition-colors ${exportType === 'excel' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                                  >
+                                      Excel Format
+                                  </button>
+                                  <button 
+                                      onClick={() => setExportType('spss')}
+                                      className={`px-4 py-1.5 text-sm font-bold rounded-md transition-colors ${exportType === 'spss' ? 'bg-slate-800 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                                  >
+                                      SPSS Format
+                                  </button>
+                              </div>
+                              <button onClick={exportCurrentData} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 flex items-center gap-2 shadow-sm font-bold text-sm">
+                                  <Download className="w-4 h-4"/> Download CSV
+                              </button>
+                          </div>
+                      </div>
+
+                      {/* SPSS Codebook Toggle Section */}
+                      {exportType === 'spss' && (
+                          <div className="mb-6 bg-indigo-50 border border-indigo-200 rounded-lg p-4 flex justify-between items-center">
+                              <div>
+                                  <h3 className="text-sm font-bold text-indigo-900 flex items-center gap-2">
+                                      <Database className="w-4 h-4"/> SPSS Data Dictionary / Codebook
+                                  </h3>
+                                  <p className="text-xs text-indigo-700 mt-1">View the variable encoding reference for statistical software imports.</p>
+                              </div>
+                              <button 
+                                  onClick={() => setShowCodebook(!showCodebook)}
+                                  className="px-4 py-2 bg-white text-indigo-700 border border-indigo-200 rounded shadow-sm text-xs font-bold hover:bg-indigo-100 transition-colors"
+                              >
+                                  {showCodebook ? "Hide Codebook" : "View Codebook"}
+                              </button>
+                          </div>
+                      )}
+
+                      {/* Render SPSS Codebook Table */}
+                      {exportType === 'spss' && showCodebook && (
+                          <div className="bg-white rounded-lg shadow-sm border border-slate-200 mb-6 overflow-hidden">
+                              <table className="w-full text-xs text-left">
+                                  <thead className="bg-indigo-100 text-indigo-900 font-bold border-b border-indigo-200">
+                                      <tr>
+                                          <th className="p-3 border-r border-indigo-200">SPSS Variable Name</th>
+                                          <th className="p-3 border-r border-indigo-200">Measure Type</th>
+                                          <th className="p-3 border-r border-indigo-200">Data Type</th>
+                                          <th className="p-3">Value Labels / Coding Details</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody className="divide-y divide-slate-100">
+                                      {spssCodebook.map((row, i) => (
+                                          <tr key={i} className="hover:bg-slate-50">
+                                              <td className="p-3 border-r font-mono text-indigo-700 font-semibold">{row.variable}</td>
+                                              <td className="p-3 border-r text-slate-600 font-medium">{row.measure}</td>
+                                              <td className="p-3 border-r text-slate-600">{row.type}</td>
+                                              <td className="p-3 text-slate-800">{row.coding}</td>
+                                          </tr>
+                                      ))}
+                                  </tbody>
+                              </table>
+                          </div>
+                      )}
+
+                      {/* Variables List Card */}
+                      <div className="bg-white rounded-lg shadow-sm border border-slate-200 mb-6 p-6">
+                          <h3 className="text-sm font-bold text-slate-800 mb-3 flex items-center gap-2">
+                              <Database className="w-4 h-4 text-indigo-600"/> 
+                              Variables Included in {exportType === 'spss' ? 'SPSS Data' : 'Generalized Excel Data'} Export
+                          </h3>
+                          {variablesList.length > 0 ? (
+                              <div className="flex flex-wrap gap-2">
+                                  {variablesList.map((variable, idx) => (
+                                      <span key={idx} className="bg-slate-100 border border-slate-200 text-slate-700 px-2 py-1 rounded text-xs font-mono">
+                                          {variable}
+                                      </span>
+                                  ))}
+                              </div>
+                          ) : (
+                              <p className="text-sm text-slate-500 italic">No variables available. Add a patient record first.</p>
+                          )}
+                      </div>
+
+                      {/* Data Preview Table */}
+                      {currentData.length === 0 ? (
+                          <div className="text-center p-12 bg-white rounded-lg border border-dashed">
+                              <Table className="w-12 h-12 text-slate-300 mx-auto mb-4"/>
+                              <p className="text-slate-500">No records available to preview.</p>
+                          </div>
+                      ) : (
+                          <div className="bg-white rounded-lg shadow overflow-hidden border">
+                              <div className="overflow-x-auto">
+                                  <table className="w-full text-xs text-left whitespace-nowrap">
+                                      <thead className="bg-slate-50 text-slate-700 font-bold border-b">
+                                          <tr>
+                                              {variablesList.map((key, idx) => (
+                                                  <th key={idx} className="p-3 border-r">{key}</th>
+                                              ))}
+                                          </tr>
+                                      </thead>
+                                      <tbody className="divide-y">
+                                          {currentData.map((row, i) => (
+                                              <tr key={i} className="hover:bg-slate-50">
+                                                  {Object.values(row).map((val, j) => (
+                                                      <td key={j} className="p-3 border-r">{val === null || val === undefined ? '' : String(val)}</td>
+                                                  ))}
+                                              </tr>
+                                          ))}
+                                      </tbody>
+                                  </table>
+                              </div>
+                          </div>
+                      )}
+                  </div>
+              );
+          };
 
           if (!isAuthenticated) {
             return <LoginScreen onLogin={() => setIsAuthenticated(true)} />;
@@ -1614,9 +1821,9 @@
                       <Folder className="w-4 h-4 flex-shrink-0"/> 
                       {isSidebarOpen && <span>Patient Records</span>}
                     </button>
-                    <button onClick={() => setActiveTab('chat')} className={`w-full flex items-center ${isSidebarOpen ? 'gap-3 px-4' : 'justify-center px-2'} py-3 rounded-lg text-sm transition-all ${activeTab === 'chat' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`} title="Ask the Data">
-                      <MessageSquare className="w-4 h-4 flex-shrink-0"/> 
-                      {isSidebarOpen && <span>Ask the Data</span>}
+                    <button onClick={() => setActiveTab('export')} className={`w-full flex items-center ${isSidebarOpen ? 'gap-3 px-4' : 'justify-center px-2'} py-3 rounded-lg text-sm transition-all ${activeTab === 'export' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800'}`} title="Data Export Center">
+                      <Table className="w-4 h-4 flex-shrink-0"/> 
+                      {isSidebarOpen && <span>Data Export Center</span>}
                     </button>
                   </nav>
 
@@ -1664,7 +1871,7 @@
                   {activeTab === 'analysis' && renderAnalysis()}
                   {activeTab === 'dashboard' && renderDashboard()}
                   {activeTab === 'records' && renderRecords()}
-                  {activeTab === 'chat' && renderChat()}
+                  {activeTab === 'export' && renderDataExport()}
                   
                   {/* Global Notification Toast */}
                   {notification && <Toast message={notification.message} type={notification.type} />}
