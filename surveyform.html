@@ -1051,6 +1051,27 @@
           // NEW STATE FOR SPSS CODEBOOK
           const [showCodebook, setShowCodebook] = useState(false);
 
+          // Fetch With Backoff specific to Google API to prevent rate limits
+          const fetchWithBackoff = async (url, options) => {
+              let delay = 1000;
+              for (let i = 0; i < 5; i++) {
+                  try {
+                      const response = await fetch(url, options);
+                      if (response.ok) return response;
+                      
+                      if (response.status !== 429 && response.status < 500) {
+                          const errData = await response.json().catch(() => null);
+                          throw new Error(`API Error ${response.status}: ${errData?.error?.message || response.statusText}`);
+                      }
+                  } catch (error) {
+                      if (i === 4 || error.message.includes('API Error')) throw error;
+                  }
+                  await new Promise(resolve => setTimeout(resolve, delay));
+                  delay *= 2;
+              }
+              throw new Error("API request failed after retries.");
+          };
+
           useEffect(() => {
               // 1. Fetch Local Data Safely
               let localRecords = [];
@@ -1139,34 +1160,7 @@
                   if (window.searchTimeout) clearTimeout(window.searchTimeout);
                   
                   window.searchTimeout = setTimeout(async () => {
-                      try {
-                          // Connects to the custom PHP backend script specified by the user
-                          const response = await fetch(`/search_backend.php?q=${encodeURIComponent(value)}&type=${field}`);
-                          if (response.ok) {
-                              let sqlData = await response.json();
-                              if(sqlData && sqlData.length > 0) {
-                                  // Sort the results: Priority given to matches starting with the typed query
-                                  const lowerVal = value.toLowerCase();
-                                  sqlData.sort((a, b) => {
-                                      if (field === 'name') {
-                                          const aGen = (a.generic_name || '').toLowerCase().startsWith(lowerVal);
-                                          const bGen = (b.generic_name || '').toLowerCase().startsWith(lowerVal);
-                                          return (aGen === bGen) ? 0 : aGen ? -1 : 1;
-                                      } else {
-                                          const aBrand = (a.brand_name || '').toLowerCase().startsWith(lowerVal);
-                                          const bBrand = (b.brand_name || '').toLowerCase().startsWith(lowerVal);
-                                          return (aBrand === bBrand) ? 0 : aBrand ? -1 : 1;
-                                      }
-                                  });
-                                  setDrugSuggestions(sqlData.slice(0, 10)); // Limit to top 10 relevant hits
-                                  return; // Important: Return early if backend returns data so fallback isn't used
-                              }
-                          }
-                      } catch (e) {
-                          // Ignore error, fall straight to local fallback
-                      }
-                      
-                      // Fallback: Search the robust local database
+                      // Search the robust local database
                       let results = [];
                       const lowerValue = value.toLowerCase();
                       localDrugDB.forEach(d => {
@@ -1266,7 +1260,7 @@
                           updated.push({
                               generic_name: genericName,
                               brand_name: brandName,
-                              dosage_form: '', // Cannot infer form accurately just from dose string, leaving blank
+                              dosage_form: '', 
                               strength: doseString
                           });
                           changed = true;
@@ -1274,27 +1268,6 @@
                   });
                   return changed ? updated : prev;
               });
-          };
-
-          // Fetch With Backoff specific to Google API to prevent rate limits
-          const fetchGoogleWithBackoff = async (url, options) => {
-              let delay = 1000;
-              for (let i = 0; i < 5; i++) {
-                  try {
-                      const response = await fetch(url, options);
-                      if (response.ok) return response;
-                      
-                      if (response.status !== 429 && response.status < 500) {
-                          const errData = await response.json().catch(() => null);
-                          throw new Error(`API Error ${response.status}: ${errData?.error?.message || response.statusText}`);
-                      }
-                  } catch (error) {
-                      if (i === 4 || error.message.includes('API Error')) throw error;
-                  }
-                  await new Promise(resolve => setTimeout(resolve, delay));
-                  delay *= 2;
-              }
-              throw new Error("API request failed after retries.");
           };
 
           const lookupDrugDetails = async (id, query) => {
@@ -1320,7 +1293,7 @@
 
             try {
                const effectiveKey = geminiKey.trim() || apiKey;
-               const response = await fetchGoogleWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${effectiveKey}`, {
+               const response = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${effectiveKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1542,7 +1515,7 @@
 
             try {
               const effectiveKey = geminiKey.trim() || apiKey;
-              const response = await fetchGoogleWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${effectiveKey}`, {
+              const response = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${effectiveKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
