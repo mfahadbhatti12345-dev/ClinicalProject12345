@@ -103,6 +103,502 @@
             }
         }
 
+        // --- DRUG DATABASE (Translated from User SQL Schema) ---
+        const DRUG_DATABASE = [
+          { generic_name: 'Aspirin', brand_name: 'Aspirin', dosage_form: 'Tablet', strength: '300 mg' },
+          { generic_name: 'Aspirin', brand_name: 'Ascard', dosage_form: 'Tablet', strength: '75 mg' },
+          { generic_name: 'Aspirin', brand_name: 'Ascard', dosage_form: 'Tablet', strength: '150 mg' },
+          { generic_name: 'Aspirin', brand_name: 'Ascard', dosage_form: 'Tablet', strength: '300 mg' },
+          { generic_name: 'Aspirin', brand_name: 'Disprin', dosage_form: 'Tablet', strength: '300 mg' },
+          { generic_name: 'Aspirin', brand_name: 'Loprin', dosage_form: 'Tablet', strength: '75 mg' },
+          { generic_name: 'Aspirin', brand_name: 'Loprin', dosage_form: 'Tablet', strength: '150 mg' },
+          { generic_name: 'Ibuprofen', brand_name: 'Brufen', dosage_form: 'Tablet', strength: '200 mg' },
+          { generic_name: 'Ibuprofen', brand_name: 'Brufen', dosage_form: 'Tablet', strength: '400 mg' },
+          { generic_name: 'Ibuprofen', brand_name: 'Brufen', dosage_form: 'Tablet', strength: '600 mg' },
+          { generic_name: 'Ibuprofen', brand_name: 'Actifen', dosage_form: 'Tablet', strength: '200 mg' },
+          { generic_name: 'Ibuprofen', brand_name: 'Actifen', dosage_form: 'Tablet', strength: '400 mg' },
+          { generic_name: 'Ibuprofen', brand_name: 'Actifen', dosage_form: 'Tablet', strength: '600 mg' },
+          { generic_name: 'Flurbiprofen', brand_name: 'Froben', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Flurbiprofen', brand_name: 'Froben', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Flurbiprofen', brand_name: 'Ansaid', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Diclofenac Sodium', brand_name: 'Artifen', dosage_form: 'Tablet', strength: '25 mg' },
+          { generic_name: 'Diclofenac Sodium', brand_name: 'Artifen', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Diclofenac Sodium', brand_name: 'Dicloran', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Diclofenac Sodium', brand_name: 'Voren', dosage_form: 'Tablet', strength: '25 mg' },
+          { generic_name: 'Diclofenac Sodium', brand_name: 'Voren', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Naproxen', brand_name: 'Flexin', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Naproxen', brand_name: 'Flexin', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Naproxen', brand_name: 'Synflex', dosage_form: 'Tablet', strength: '550 mg' },
+          { generic_name: 'Piroxicam', brand_name: 'Brexin', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Piroxicam', brand_name: 'Feldene', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Nimesulide', brand_name: 'Nims', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Nimesulide', brand_name: 'Unix', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Ketorolac', brand_name: 'Toradol', dosage_form: 'Injection', strength: '10 mg/ml' },
+          { generic_name: 'Ketorolac', brand_name: 'Toradol', dosage_form: 'Injection', strength: '30 mg/ml' },
+          { generic_name: 'Paracetamol', brand_name: 'Panadol', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Paracetamol', brand_name: 'Calpol', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Paracetamol', brand_name: 'Disprol', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Paracetamol + Caffeine', brand_name: 'Panadol Extra', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Paracetamol + Caffeine', brand_name: 'Calpol Plus', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Paracetamol + Orphenadrine', brand_name: 'Wilgesic', dosage_form: 'Tablet', strength: '450/35 mg' },
+          { generic_name: 'Paracetamol + Orphenadrine', brand_name: 'Wilgesic Forte', dosage_form: 'Tablet', strength: '650/50 mg' },
+          { generic_name: 'Paracetamol + Orphenadrine', brand_name: 'Nuberol Forte', dosage_form: 'Tablet', strength: '650/50 mg' },
+          { generic_name: 'Paracetamol + Codeine', brand_name: 'Codogesic', dosage_form: 'Tablet', strength: '500/15 mg' },
+          { generic_name: 'Tramadol', brand_name: 'Tramal', dosage_form: 'Capsule', strength: '50 mg' },
+          { generic_name: 'Tramadol', brand_name: 'Tramal', dosage_form: 'Injection', strength: '50 mg/ml' },
+          { generic_name: 'Tizanidine', brand_name: 'Ternelin', dosage_form: 'Tablet', strength: '2 mg' },
+          { generic_name: 'Tizanidine', brand_name: 'Ternelin', dosage_form: 'Tablet', strength: '4 mg' },
+          { generic_name: 'Tizanidine', brand_name: 'Movax', dosage_form: 'Tablet', strength: '2 mg' },
+          { generic_name: 'Tizanidine', brand_name: 'Movax', dosage_form: 'Tablet', strength: '4 mg' },
+          { generic_name: 'Thiocolchicoside', brand_name: 'Thiolax', dosage_form: 'Capsule', strength: '4 mg' },
+          { generic_name: 'Thiocolchicoside', brand_name: 'Muscoril', dosage_form: 'Capsule', strength: '4 mg' },
+          { generic_name: 'Amoxicillin', brand_name: 'Amoxil', dosage_form: 'Capsule', strength: '250 mg' },
+          { generic_name: 'Amoxicillin', brand_name: 'Amoxil', dosage_form: 'Capsule', strength: '500 mg' },
+          { generic_name: 'Amoxicillin', brand_name: 'Wymox', dosage_form: 'Capsule', strength: '250 mg' },
+          { generic_name: 'Amoxicillin', brand_name: 'Wymox', dosage_form: 'Capsule', strength: '500 mg' },
+          { generic_name: 'Amoxicillin', brand_name: 'Wymox', dosage_form: 'Capsule', strength: '1 g' },
+          { generic_name: 'Amoxicillin + Clavulanic Acid (Co-amoxiclav)', brand_name: 'Augmentin', dosage_form: 'Tablet', strength: '375 mg' },
+          { generic_name: 'Amoxicillin + Clavulanic Acid (Co-amoxiclav)', brand_name: 'Augmentin', dosage_form: 'Tablet', strength: '625 mg' },
+          { generic_name: 'Amoxicillin + Clavulanic Acid (Co-amoxiclav)', brand_name: 'Augmentin', dosage_form: 'Tablet', strength: '1 g' },
+          { generic_name: 'Amoxicillin + Clavulanic Acid (Co-amoxiclav)', brand_name: 'Augmentin', dosage_form: 'Injection', strength: '600 mg' },
+          { generic_name: 'Amoxicillin + Clavulanic Acid (Co-amoxiclav)', brand_name: 'Augmentin', dosage_form: 'Injection', strength: '1.2 g' },
+          { generic_name: 'Amoxicillin + Clavulanic Acid (Co-amoxiclav)', brand_name: 'Calamox', dosage_form: 'Tablet', strength: '1 g' },
+          { generic_name: 'Amoxicillin + Clavulanic Acid (Co-amoxiclav)', brand_name: 'Calamox', dosage_form: 'Injection', strength: '600 mg' },
+          { generic_name: 'Amoxicillin + Clavulanic Acid (Co-amoxiclav)', brand_name: 'Calamox', dosage_form: 'Injection', strength: '1.2 g' },
+          { generic_name: 'Cephradine', brand_name: 'Velosef', dosage_form: 'Capsule', strength: '250 mg' },
+          { generic_name: 'Cephradine', brand_name: 'Velosef', dosage_form: 'Capsule', strength: '500 mg' },
+          { generic_name: 'Cefixime', brand_name: 'Cefiget', dosage_form: 'Capsule', strength: '400 mg' },
+          { generic_name: 'Cefixime', brand_name: 'Cefspan', dosage_form: 'Capsule', strength: '400 mg' },
+          { generic_name: 'Cefixime', brand_name: 'Cefim', dosage_form: 'Capsule', strength: '200 mg' },
+          { generic_name: 'Cefixime', brand_name: 'Cefim', dosage_form: 'Capsule', strength: '400 mg' },
+          { generic_name: 'Ciprofloxacin', brand_name: 'Ciprin', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Ciprofloxacin', brand_name: 'Ciprin', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Ciprofloxacin', brand_name: 'Novidat', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Ciprofloxacin', brand_name: 'Novidat', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Ciprofloxacin', brand_name: 'Novidat', dosage_form: 'Injection', strength: '200 mg' },
+          { generic_name: 'Ciprofloxacin', brand_name: 'Hiflox', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Ciprofloxacin', brand_name: 'Hiflox', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Ciprofloxacin', brand_name: 'Hiflox', dosage_form: 'Tablet', strength: '750 mg' },
+          { generic_name: 'Ciprofloxacin', brand_name: 'Mercip', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Ciprofloxacin', brand_name: 'Mercip', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Ciprofloxacin', brand_name: 'Mercip', dosage_form: 'Injection', strength: '200 mg' },
+          { generic_name: 'Ciprofloxacin', brand_name: 'Veprox', dosage_form: 'Injection', strength: '200 mg' },
+          { generic_name: 'Levofloxacin', brand_name: 'Leflox', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Levofloxacin', brand_name: 'Leflox', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Levofloxacin', brand_name: 'Leflox', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Levofloxacin', brand_name: 'Levo', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Levofloxacin', brand_name: 'Levo', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Levofloxacin', brand_name: 'Bexus', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Levofloxacin', brand_name: 'Bexus', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Ofloxacin', brand_name: 'Oflobid', dosage_form: 'Tablet', strength: '200 mg' },
+          { generic_name: 'Ofloxacin', brand_name: 'Oflobid', dosage_form: 'Tablet', strength: '400 mg' },
+          { generic_name: 'Clarithromycin', brand_name: 'Klaricid', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Clarithromycin', brand_name: 'Klaricid', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Clarithromycin', brand_name: 'Klaricid XL', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Clarithromycin', brand_name: 'Klaricid', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Clarithromycin', brand_name: 'Rithmo', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Clarithromycin', brand_name: 'Rithmo', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Clarithromycin', brand_name: 'Rithmo XL', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Clarithromycin', brand_name: 'Neo-Klar', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Clarithromycin', brand_name: 'Neo-Klar', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Moxifloxacin', brand_name: 'Avelox', dosage_form: 'Tablet', strength: '400 mg' },
+          { generic_name: 'Moxifloxacin', brand_name: 'Moxiget', dosage_form: 'Tablet', strength: '400 mg' },
+          { generic_name: 'Azithromycin', brand_name: 'Azomax', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Doxycycline', brand_name: 'Vibramycin', dosage_form: 'Capsule/Tablet', strength: '100 mg' },
+          { generic_name: 'Metronidazole', brand_name: 'Flagyl', dosage_form: 'Tablet', strength: '200 mg' },
+          { generic_name: 'Metronidazole', brand_name: 'Flagyl', dosage_form: 'Tablet', strength: '400 mg' },
+          { generic_name: 'Metronidazole', brand_name: 'Flagyl', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Metronidazole', brand_name: 'Abozole', dosage_form: 'Tablet', strength: '400 mg' },
+          { generic_name: 'Metronidazole', brand_name: 'Abozole', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Clindamycin', brand_name: 'Dalacin C', dosage_form: 'Capsule', strength: '150 mg' },
+          { generic_name: 'Clindamycin', brand_name: 'Dalacin C', dosage_form: 'Capsule', strength: '300 mg' },
+          { generic_name: 'Clindamycin', brand_name: 'Dalacin C', dosage_form: 'Injection', strength: '300 mg (2 ml)' },
+          { generic_name: 'Clindamycin', brand_name: 'Dalacin C', dosage_form: 'Injection', strength: '600 mg (4 ml)' },
+          { generic_name: 'Ampicillin + Cloxacillin', brand_name: 'Ampiclox', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Ampicillin + Cloxacillin', brand_name: 'Ampiclox', dosage_form: 'Injection', strength: '1 g' },
+          { generic_name: 'Benzylpenicillin (Benzathine Penicillin G)', brand_name: 'Benzyl Penicillin', dosage_form: 'Injection', strength: '0.5 million units' },
+          { generic_name: 'Benzylpenicillin (Benzathine Penicillin G)', brand_name: 'Benzyl Penicillin', dosage_form: 'Injection', strength: '1 million units' },
+          { generic_name: 'Ceftriaxone', brand_name: 'Rocephin', dosage_form: 'Injection', strength: '250 mg' },
+          { generic_name: 'Ceftriaxone', brand_name: 'Rocephin', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Ceftriaxone', brand_name: 'Rocephin', dosage_form: 'Injection', strength: '1 g' },
+          { generic_name: 'Ceftriaxone', brand_name: 'Rocephin', dosage_form: 'Injection', strength: '2 g' },
+          { generic_name: 'Ceftriaxone', brand_name: 'Oxidil', dosage_form: 'Injection', strength: '250 mg' },
+          { generic_name: 'Ceftriaxone', brand_name: 'Oxidil', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Ceftriaxone', brand_name: 'Oxidil', dosage_form: 'Injection', strength: '1 g' },
+          { generic_name: 'Ceftotaxime', brand_name: 'Cefotax', dosage_form: 'Injection', strength: '250 mg' },
+          { generic_name: 'Ceftotaxime', brand_name: 'Cefotax', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Ceftotaxime', brand_name: 'Cefotax', dosage_form: 'Injection', strength: '1 g' },
+          { generic_name: 'Ceftotaxime', brand_name: 'Baxim', dosage_form: 'Injection', strength: '250 mg' },
+          { generic_name: 'Ceftotaxime', brand_name: 'Baxim', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Ceftotaxime', brand_name: 'Baxim', dosage_form: 'Injection', strength: '1 g' },
+          { generic_name: 'Ceftazidime', brand_name: 'Fortum', dosage_form: 'Injection', strength: '250 mg' },
+          { generic_name: 'Ceftazidime', brand_name: 'Fortum', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Ceftazidime', brand_name: 'Fortum', dosage_form: 'Injection', strength: '1 g' },
+          { generic_name: 'Amikacin', brand_name: 'Grasil', dosage_form: 'Injection', strength: '100 mg (2 ml)' },
+          { generic_name: 'Amikacin', brand_name: 'Grasil', dosage_form: 'Injection', strength: '250 mg (2 ml)' },
+          { generic_name: 'Amikacin', brand_name: 'Grasil', dosage_form: 'Injection', strength: '500 mg (2 ml)' },
+          { generic_name: 'Gentamicin', brand_name: 'Genticyn', dosage_form: 'Injection', strength: '20 mg' },
+          { generic_name: 'Gentamicin', brand_name: 'Genticyn', dosage_form: 'Injection', strength: '40 mg' },
+          { generic_name: 'Gentamicin', brand_name: 'Genticyn', dosage_form: 'Injection', strength: '80 mg' },
+          { generic_name: 'Piperacillin + Tazobactum', brand_name: 'Tanzo', dosage_form: 'Injection', strength: '2.25 g' },
+          { generic_name: 'Piperacillin + Tazobactum', brand_name: 'Tanzo', dosage_form: 'Injection', strength: '4.5 g' },
+          { generic_name: 'Piperacillin + Tazobactum', brand_name: 'Tazocin', dosage_form: 'Injection', strength: '4.5 g' },
+          { generic_name: 'Imipenem + Cilastatin', brand_name: 'Tienam', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Meropenem', brand_name: 'Meronem', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Meropenem', brand_name: 'Meronem', dosage_form: 'Injection', strength: '1 g' },
+          { generic_name: 'Vancomycin', brand_name: 'Vancomycin', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Vancomycin', brand_name: 'Vancomycin', dosage_form: 'Injection', strength: '1 g' },
+          { generic_name: 'Linezolid', brand_name: 'Ecasil', dosage_form: 'Injection', strength: '200 mg' },
+          { generic_name: 'Linezolid', brand_name: 'Ecasil', dosage_form: 'Injection', strength: '600 mg' },
+          { generic_name: 'Linezolid', brand_name: 'Nezkil', dosage_form: 'Injection', strength: '200 mg' },
+          { generic_name: 'Linezolid', brand_name: 'Nezkil', dosage_form: 'Injection', strength: '600 mg' },
+          { generic_name: 'Teicoplanin', brand_name: 'Targocid', dosage_form: 'Injection', strength: '200 mg' },
+          { generic_name: 'Teicoplanin', brand_name: 'Targocid', dosage_form: 'Injection', strength: '400 mg' },
+
+          // Anti-Tuberculosis
+          { generic_name: 'Isoniazid + Rifampicin + Ethambutol + Pyrizinamide', brand_name: 'Myrin-P', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Isoniazid + Rifampicin + Ethambutol + Pyrizinamide', brand_name: 'Myrin-P Forte', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Isoniazid + Rifampicin + Ethambutol + Pyrizinamide', brand_name: 'Rifa 4', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Isoniazid + Rifampicin + Ethambutol + Pyrizinamide', brand_name: 'Rifa 4 Plus', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Isoniazid + Rifampicin + Pyrizinamide', brand_name: 'Myrin', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Isoniazid + Rifampicin + Pyrizinamide', brand_name: 'Rifatol', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Isoniazid + Rifampicin + Pyrizinamide', brand_name: 'Rimcure 3', dosage_form: 'Tablet', strength: '75+150+400 mg' },
+          { generic_name: 'Isoniazid', brand_name: 'Isoniazid', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Isoniazid', brand_name: 'INH', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Isoniazid', brand_name: 'INH', dosage_form: 'Tablet', strength: '300 mg' },
+          { generic_name: 'Rifampicin', brand_name: 'Rimactal', dosage_form: 'Tablet', strength: '300 mg' },
+          { generic_name: 'Rifampicin', brand_name: 'Rimactal', dosage_form: 'Tablet', strength: '450 mg' },
+          { generic_name: 'Ethambutol', brand_name: 'Myambutol', dosage_form: 'Tablet', strength: '400 mg' },
+          { generic_name: 'Pyrizinamide', brand_name: 'Pyrizinamide', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Pyrizinamide', brand_name: 'PZA CIBA', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Rifampicin + Isoniazid', brand_name: 'Rimactal INH 300', dosage_form: 'Tablet', strength: '300/150 mg' },
+          { generic_name: 'Rifampicin + Isoniazid', brand_name: 'Rimactal INH 450', dosage_form: 'Tablet', strength: '450/300 mg' },
+          { generic_name: 'Ethambutol + Isoniazid', brand_name: 'Myambutol INH', dosage_form: 'Tablet', strength: '400/100 mg' },
+
+          // Antihypertensives & CVS
+          { generic_name: 'Lisinopril', brand_name: 'Zestril', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Lisinopril', brand_name: 'Zestril', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Lisinopril', brand_name: 'Zestril', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Lisinopril', brand_name: 'Ziscar', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Lisinopril', brand_name: 'Ziscar', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Lisinopril', brand_name: 'Ziscar', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Lisinopril', brand_name: 'Lispril', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Lisinopril', brand_name: 'Lispril', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Lisinopril', brand_name: 'Lispril', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Captopril', brand_name: 'Capoten', dosage_form: 'Tablet', strength: '25 mg' },
+          { generic_name: 'Captopril', brand_name: 'Capoten', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Captopril', brand_name: 'Capril', dosage_form: 'Tablet', strength: '12.5 mg' },
+          { generic_name: 'Captopril', brand_name: 'Capril', dosage_form: 'Tablet', strength: '25 mg' },
+          { generic_name: 'Captopril', brand_name: 'Capril', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Enalapril', brand_name: 'Renitec', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Enalapril', brand_name: 'Renitec', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Enalapril', brand_name: 'Renitec', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Enalapril', brand_name: 'Cardace', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Enalapril', brand_name: 'Cardace', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Enalapril', brand_name: 'Cardiotec', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Enalapril', brand_name: 'Cardiotec', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Losartan', brand_name: 'Xavor', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Losartan', brand_name: 'Eziday', dosage_form: 'Tablet', strength: '25 mg' },
+          { generic_name: 'Losartan', brand_name: 'Eziday', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Losartan', brand_name: 'Eziday', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Valsartan', brand_name: 'Valtec', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Valsartan', brand_name: 'Valtec', dosage_form: 'Tablet', strength: '80 mg' },
+          { generic_name: 'Valsartan', brand_name: 'Valtec', dosage_form: 'Tablet', strength: '160 mg' },
+          { generic_name: 'Telmisartan', brand_name: 'Tasmi', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Telmisartan', brand_name: 'Tasmi', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Telmisartan', brand_name: 'Tasmi', dosage_form: 'Tablet', strength: '80 mg' },
+          { generic_name: 'Lisinopril + Hydrochlorothiazide', brand_name: 'Zestoretic 20', dosage_form: 'Tablet', strength: '20/25 mg' },
+          { generic_name: 'Losartan + Hydrochlorothiazide', brand_name: 'Co-Eziday', dosage_form: 'Tablet', strength: '50/12.5 mg' },
+          { generic_name: 'Losartan + Hydrochlorothiazide', brand_name: 'Co-Eziday', dosage_form: 'Tablet', strength: '100/25 mg' },
+          { generic_name: 'Losartan + Hydrochlorothiazide', brand_name: 'Xavor DIU', dosage_form: 'Tablet', strength: '50/12.5 mg' },
+          { generic_name: 'Losartan + Hydrochlorothiazide', brand_name: 'Xavor DIU Forte', dosage_form: 'Tablet', strength: '100/25 mg' },
+          { generic_name: 'Atenolol', brand_name: 'Tenormin', dosage_form: 'Tablet', strength: '25 mg' },
+          { generic_name: 'Atenolol', brand_name: 'Tenormin', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Atenolol', brand_name: 'Tenormin', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Atenolol', brand_name: 'Blokium', dosage_form: 'Tablet', strength: '25 mg' },
+          { generic_name: 'Atenolol', brand_name: 'Blokium', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Atenolol', brand_name: 'Blokium', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Metoprolol', brand_name: 'Mepressor', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Metoprolol', brand_name: 'Merol', dosage_form: 'Tablet', strength: '25 mg' },
+          { generic_name: 'Metoprolol', brand_name: 'Merol', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Propranolol', brand_name: 'Inderal', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Propranolol', brand_name: 'Inderal', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Amlodipine', brand_name: 'Sofvasc', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Amlodipine', brand_name: 'Sofvasc', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Amlodipine', brand_name: 'Zodip', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Amlodipine', brand_name: 'Lodopin', dosage_form: 'Tablet', strength: '2.5 mg' },
+          { generic_name: 'Amlodipine', brand_name: 'Lodopin', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Amlodipine', brand_name: 'Lodopin', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Amlodipine', brand_name: 'Amodip', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Amlodipine', brand_name: 'Amodip', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Nifedipine', brand_name: 'Adalat CC', dosage_form: 'Tablet', strength: '30 mg' },
+          { generic_name: 'Nifedipine', brand_name: 'Adalat CC', dosage_form: 'Tablet', strength: '60 mg' },
+          { generic_name: 'Verapamil', brand_name: 'Calan', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Verapamil', brand_name: 'Calan', dosage_form: 'Tablet', strength: '80 mg' },
+          { generic_name: 'Verapamil', brand_name: 'Calan SR', dosage_form: 'Tablet', strength: '240 mg' },
+          { generic_name: 'Diltiazam', brand_name: 'Herbesser', dosage_form: 'Tablet', strength: '30 mg' },
+          { generic_name: 'Diltiazam', brand_name: 'Herbesser', dosage_form: 'Tablet', strength: '60 mg' },
+          { generic_name: 'Diltiazam', brand_name: 'Herbesser SR', dosage_form: 'Capsule', strength: '90 mg' },
+          { generic_name: 'Diltiazam', brand_name: 'Herbesser SR', dosage_form: 'Capsule', strength: '180 mg' },
+          { generic_name: 'Hydrochlorothiazide', brand_name: 'Urozide', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Frusemide', brand_name: 'Lasix', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Frusemide', brand_name: 'Lasix', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Spironolactone', brand_name: 'Aldactone-A', dosage_form: 'Tablet', strength: '25 mg' },
+          { generic_name: 'Spironolactone', brand_name: 'Aldactone-A', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Spironolactone + Frusemide', brand_name: 'Spiromide 20', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Spironolactone + Frusemide', brand_name: 'Spiromide 40', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Prazosin', brand_name: 'Minipress', dosage_form: 'Tablet', strength: '1 mg' },
+          { generic_name: 'Prazosin', brand_name: 'Minipress', dosage_form: 'Tablet', strength: '2 mg' },
+          { generic_name: 'Methyldopa', brand_name: 'Aldomet', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Nitroglycerin', brand_name: 'Angised', dosage_form: 'Tablet', strength: '0.5 mg' },
+          { generic_name: 'Nitroglycerin', brand_name: 'Angilingual', dosage_form: 'Tablet', strength: '0.5 mg' },
+          { generic_name: 'Isosorbide Mononitrate', brand_name: 'Monis', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Isosorbide Mononitrate', brand_name: 'Monis', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Isosorbide Mononitrate', brand_name: 'Monis', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Isosorbide Mononitrate', brand_name: 'Monis XR', dosage_form: 'Tablet', strength: '60 mg' },
+          { generic_name: 'Isosorbide Mononitrate', brand_name: 'Elantin', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Isosorbide Mononitrate', brand_name: 'Elantin', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Isosorbide Dinitrate', brand_name: 'Isoket', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Isosorbide Dinitrate', brand_name: 'Isoket', dosage_form: 'Injection', strength: '10 mg/10 ml' },
+          { generic_name: 'Clopidogrel', brand_name: 'Lowplat', dosage_form: 'Tablet', strength: '75 mg' },
+          { generic_name: 'Clopidogrel', brand_name: 'Noclot', dosage_form: 'Tablet', strength: '75 mg' },
+          { generic_name: 'Aspirin + Clopidogrel', brand_name: 'Ascard Plus', dosage_form: 'Tablet', strength: '75/75 mg' },
+          { generic_name: 'Aspirin + Clopidogrel', brand_name: 'Lowplat Plus', dosage_form: 'Tablet', strength: '75/75 mg' },
+          { generic_name: 'Atorvastatin', brand_name: 'Atorva', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Atorvastatin', brand_name: 'Atorva', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Atorvastatin', brand_name: 'Lipiget', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Atorvastatin', brand_name: 'Lipiget', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Atorvastatin', brand_name: 'Lipiget', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Atorvastatin', brand_name: 'Survive', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Atorvastatin', brand_name: 'Survive', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Atorvastatin', brand_name: 'Survive', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Simvastatin', brand_name: 'Simva', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Simvastatin', brand_name: 'Simva', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Rosuvastatin', brand_name: 'Rast', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Rosuvastatin', brand_name: 'Rast', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Rosuvastatin', brand_name: 'Rast', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Rosuvastatin', brand_name: 'Vaptor', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Rosuvastatin', brand_name: 'Vaptor', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Rosuvastatin', brand_name: 'Vaptor', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Amiodarone', brand_name: 'Cordarone', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Amiodarone', brand_name: 'Cordarone', dosage_form: 'Tablet', strength: '200 mg' },
+          { generic_name: 'Amiodarone', brand_name: 'Cordarone', dosage_form: 'Injection', strength: '150 mg' },
+          { generic_name: 'Digoxin', brand_name: 'Lanoxin', dosage_form: 'Tablet', strength: '0.25 mg' },
+          { generic_name: 'Digoxin', brand_name: 'Lanoxin', dosage_form: 'Injection', strength: '0.5 mg/2 ml' },
+
+          // Endocrine (Diabetes & Thyroid)
+          { generic_name: 'Metformin', brand_name: 'Glucophage', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Metformin', brand_name: 'Glucophage', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Metformin', brand_name: 'Glucophage', dosage_form: 'Tablet', strength: '850 mg' },
+          { generic_name: 'Metformin', brand_name: 'Glucophage', dosage_form: 'Tablet', strength: '1 g' },
+          { generic_name: 'Metformin', brand_name: 'Neodipar', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Metformin', brand_name: 'Neodipar', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Metformin', brand_name: 'Neodipar', dosage_form: 'Tablet', strength: '850 mg' },
+          { generic_name: 'Metformin', brand_name: 'Neodipar', dosage_form: 'Tablet', strength: '1 g' },
+          { generic_name: 'Glimepiride', brand_name: 'Amaryl', dosage_form: 'Tablet', strength: '1 mg' },
+          { generic_name: 'Glimepiride', brand_name: 'Amaryl', dosage_form: 'Tablet', strength: '2 mg' },
+          { generic_name: 'Glimepiride', brand_name: 'Amaryl', dosage_form: 'Tablet', strength: '3 mg' },
+          { generic_name: 'Glimepiride', brand_name: 'Amaryl', dosage_form: 'Tablet', strength: '4 mg' },
+          { generic_name: 'Glimepiride', brand_name: 'Evopride', dosage_form: 'Tablet', strength: '1 mg' },
+          { generic_name: 'Glimepiride', brand_name: 'Evopride', dosage_form: 'Tablet', strength: '2 mg' },
+          { generic_name: 'Glimepiride', brand_name: 'Evopride', dosage_form: 'Tablet', strength: '3 mg' },
+          { generic_name: 'Glimepiride', brand_name: 'Evopride', dosage_form: 'Tablet', strength: '4 mg' },
+          { generic_name: 'Glimepiride', brand_name: 'Getryl', dosage_form: 'Tablet', strength: '1 mg' },
+          { generic_name: 'Glimepiride', brand_name: 'Getryl', dosage_form: 'Tablet', strength: '2 mg' },
+          { generic_name: 'Glimepiride', brand_name: 'Getryl', dosage_form: 'Tablet', strength: '3 mg' },
+          { generic_name: 'Glimepiride', brand_name: 'Getryl', dosage_form: 'Tablet', strength: '4 mg' },
+          { generic_name: 'Gliclazide', brand_name: 'Diamicron', dosage_form: 'Tablet', strength: '80 mg' },
+          { generic_name: 'Gliclazide', brand_name: 'Diamicron MR', dosage_form: 'Tablet', strength: '30 mg' },
+          { generic_name: 'Gliclazide', brand_name: 'Diamicron MR', dosage_form: 'Tablet', strength: '60 mg' },
+          { generic_name: 'Glibenclamide', brand_name: 'Daonil', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Glibenclamide', brand_name: 'Euglucon', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Pioglitazone', brand_name: 'Piozer', dosage_form: 'Tablet', strength: '15 mg' },
+          { generic_name: 'Pioglitazone', brand_name: 'Piozer', dosage_form: 'Tablet', strength: '30 mg' },
+          { generic_name: 'Pioglitazone', brand_name: 'Piozer', dosage_form: 'Tablet', strength: '45 mg' },
+          { generic_name: 'Pioglitazone', brand_name: 'Zolid', dosage_form: 'Tablet', strength: '15 mg' },
+          { generic_name: 'Pioglitazone', brand_name: 'Zolid', dosage_form: 'Tablet', strength: '30 mg' },
+          { generic_name: 'Pioglitazone', brand_name: 'Zolid', dosage_form: 'Tablet', strength: '45 mg' },
+          { generic_name: 'Pioglitazone', brand_name: 'Glitos', dosage_form: 'Tablet', strength: '15 mg' },
+          { generic_name: 'Pioglitazone', brand_name: 'Glitos', dosage_form: 'Tablet', strength: '30 mg' },
+          { generic_name: 'Pioglitazone', brand_name: 'Glitos', dosage_form: 'Tablet', strength: '45 mg' },
+          { generic_name: 'Glimepiride + Metformin', brand_name: 'Evopride Plus', dosage_form: 'Tablet', strength: '1/500 mg' },
+          { generic_name: 'Glimepiride + Metformin', brand_name: 'Evopride Plus', dosage_form: 'Tablet', strength: '2/500 mg' },
+          { generic_name: 'Glimepiride + Metformin', brand_name: 'Getformin', dosage_form: 'Tablet', strength: '1/500 mg' },
+          { generic_name: 'Glimepiride + Metformin', brand_name: 'Getformin', dosage_form: 'Tablet', strength: '2/500 mg' },
+          { generic_name: 'Pioglitazone + Metformin', brand_name: 'Piozer Plus', dosage_form: 'Tablet', strength: '15/500 mg' },
+          { generic_name: 'Pioglitazone + Metformin', brand_name: 'Piozer Plus', dosage_form: 'Tablet', strength: '15/850 mg' },
+          { generic_name: 'Pioglitazone + Metformin', brand_name: 'Zolid Plus', dosage_form: 'Tablet', strength: '15/500 mg' },
+          { generic_name: 'Pioglitazone + Metformin', brand_name: 'Zolid Plus', dosage_form: 'Tablet', strength: '15/850 mg' },
+          { generic_name: 'Pioglitazone + Metformin', brand_name: 'Glitos Plus', dosage_form: 'Tablet', strength: '15/500 mg' },
+          { generic_name: 'Pioglitazone + Metformin', brand_name: 'Glitos Plus', dosage_form: 'Tablet', strength: '15/850 mg' },
+          { generic_name: 'Insulin Regular', brand_name: 'Insulin Regular', dosage_form: 'Injection', strength: '' },
+          { generic_name: 'Insulin Regular', brand_name: 'Insuget Regular', dosage_form: 'Injection', strength: '' },
+          { generic_name: 'Insulin Regular', brand_name: 'Dongsulin R', dosage_form: 'Injection', strength: '' },
+          { generic_name: 'Insulin 70/30', brand_name: 'Insulin 70/30', dosage_form: 'Injection', strength: '' },
+          { generic_name: 'Insulin 70/30', brand_name: 'Insuget 70/30', dosage_form: 'Injection', strength: '' },
+          { generic_name: 'Insulin 70/30', brand_name: 'Dongsulin 70/30', dosage_form: 'Injection', strength: '' },
+          { generic_name: 'Insulin NPH', brand_name: 'Insulin NPH', dosage_form: 'Injection', strength: '' },
+          { generic_name: 'Insulin Glargine', brand_name: 'Basagine', dosage_form: 'Injection', strength: '' },
+          { generic_name: 'Thyroxine', brand_name: 'Thyroxine', dosage_form: 'Tablet', strength: '50 µg' },
+          { generic_name: 'Carbimazole', brand_name: 'Neomercazole', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Propylthiouracil', brand_name: 'Procarbizole', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Prednisolone', brand_name: 'Deltacortil', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Prednisolone', brand_name: 'Prednisolone', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Hydrocortisone', brand_name: 'Solu-Cortef', dosage_form: 'Injection', strength: '100 mg' },
+          { generic_name: 'Hydrocortisone', brand_name: 'Solu-Cortef', dosage_form: 'Injection', strength: '250 mg' },
+          { generic_name: 'Hydrocortisone', brand_name: 'Solu-Cortef', dosage_form: 'Injection', strength: '500 mg' },
+
+          // Gastrointestinal (GIT)
+          { generic_name: 'Lactulose', brand_name: 'Duphalac', dosage_form: 'Syrup', strength: '' },
+          { generic_name: 'Lactulose', brand_name: 'Lilac', dosage_form: 'Syrup', strength: '' },
+          { generic_name: 'Aluminium Hydroxide', brand_name: 'Mucaine', dosage_form: 'Syrup', strength: '' },
+          { generic_name: 'Aluminium Hydroxide', brand_name: 'Dijex MP', dosage_form: 'Syrup', strength: '' },
+          { generic_name: 'Sucralfate', brand_name: 'Ulsanic', dosage_form: 'Syrup', strength: '' },
+          { generic_name: 'Ranitidine', brand_name: 'Zantac', dosage_form: 'Tablet', strength: '150 mg' },
+          { generic_name: 'Ranitidine', brand_name: 'Zantac', dosage_form: 'Tablet', strength: '300 mg' },
+          { generic_name: 'Ranitidine', brand_name: 'Zantac', dosage_form: 'Injection', strength: '50 mg/2 ml' },
+          { generic_name: 'Ranitidine', brand_name: 'Peptinil', dosage_form: 'Tablet', strength: '150 mg' },
+          { generic_name: 'Cimetidine', brand_name: 'Ulcerex', dosage_form: 'Tablet', strength: '400 mg' },
+          { generic_name: 'Cimetidine', brand_name: 'Ulcerex', dosage_form: 'Injection', strength: '200 mg/2 ml' },
+          { generic_name: 'Omeprazole', brand_name: 'Risek', dosage_form: 'Capsule', strength: '20 mg' },
+          { generic_name: 'Omeprazole', brand_name: 'Risek', dosage_form: 'Capsule', strength: '40 mg' },
+          { generic_name: 'Omeprazole', brand_name: 'Omega', dosage_form: 'Capsule', strength: '20 mg' },
+          { generic_name: 'Omeprazole', brand_name: 'Omega', dosage_form: 'Capsule', strength: '40 mg' },
+          { generic_name: 'Esomeprazole', brand_name: 'Nexum', dosage_form: 'Capsule', strength: '20 mg' },
+          { generic_name: 'Esomeprazole', brand_name: 'Nexum', dosage_form: 'Capsule', strength: '40 mg' },
+          { generic_name: 'Esomeprazole', brand_name: 'Esso', dosage_form: 'Capsule', strength: '20 mg' },
+          { generic_name: 'Esomeprazole', brand_name: 'Esso', dosage_form: 'Capsule', strength: '40 mg' },
+          { generic_name: 'Esomeprazole', brand_name: 'Ezium', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Esomeprazole', brand_name: 'Ezium', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Pantoprazole', brand_name: 'Zopent', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Pantoprazole', brand_name: 'Protonol', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Rabeprazole', brand_name: 'Eraze', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Rabeprazole', brand_name: 'Promto', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Lansoprazole', brand_name: 'Selanz-SR', dosage_form: 'Capsule', strength: '30 mg' },
+          { generic_name: 'Loperamide', brand_name: 'Imodium', dosage_form: 'Capsule', strength: '2 mg' },
+          { generic_name: 'Sodium Picosulphate', brand_name: 'Skilax', dosage_form: 'Tablet/Drops', strength: '' },
+          { generic_name: 'Sodium Picosulphate', brand_name: 'Laxoberon', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Bisacodyl', brand_name: 'Bisacodyl', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Dimenhydrinate', brand_name: 'Gravinate', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Dimenhydrinate', brand_name: 'Gravinate', dosage_form: 'Injection', strength: '50 mg' },
+          { generic_name: 'Domperidone', brand_name: 'Motilium', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Domperidone', brand_name: 'Peridone', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Domperidone', brand_name: 'Pelton-V', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Metoclopramide', brand_name: 'Maxolon', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Metoclopramide', brand_name: 'Maxolon', dosage_form: 'Injection', strength: '5 mg/ml' },
+          { generic_name: 'Prochlorperazine', brand_name: 'Stemetil', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Prochlorperazine', brand_name: 'Stemetil', dosage_form: 'Injection', strength: '12.5 mg/ml' },
+          { generic_name: 'Itopride', brand_name: 'Ganaton', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Drotaverine', brand_name: 'No-spa', dosage_form: 'Tablet', strength: '40 mg' },
+          { generic_name: 'Drotaverine', brand_name: 'No-spa Forte', dosage_form: 'Tablet', strength: '80 mg' },
+          { generic_name: 'Drotaverine', brand_name: 'No-spa', dosage_form: 'Injection', strength: '40 mg/2 ml' },
+          { generic_name: 'Mebeverine', brand_name: 'Mebever', dosage_form: 'Tablet', strength: '135 mg' },
+          { generic_name: 'Mebeverine', brand_name: 'Zeespa', dosage_form: 'Tablet', strength: '135 mg' },
+          { generic_name: 'Metopine', brand_name: 'Trimetabol', dosage_form: 'Syrup', strength: '' },
+
+          // Antihistamines
+          { generic_name: 'Cetirizine', brand_name: 'Sedil', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Cetirizine', brand_name: 'Rigix', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Levocetirizine', brand_name: 'Neo-Sedil', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Loratidine', brand_name: 'Softin', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Loratidine', brand_name: 'Antial', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Fexofenadine', brand_name: 'Fexet', dosage_form: 'Tablet', strength: '60 mg' },
+          { generic_name: 'Fexofenadine', brand_name: 'Fexet', dosage_form: 'Tablet', strength: '120 mg' },
+          { generic_name: 'Fexofenadine', brand_name: 'Fexet', dosage_form: 'Tablet', strength: '180 mg' },
+          { generic_name: 'Betahistine', brand_name: 'Serc', dosage_form: 'Tablet', strength: '8 mg' },
+          { generic_name: 'Betahistine', brand_name: 'Serc', dosage_form: 'Tablet', strength: '16 mg' },
+
+          // Respiratory
+          { generic_name: 'Salbutamol', brand_name: 'Aerolin Evohaler', dosage_form: 'Inhaler', strength: '100 mcg/puff' },
+          { generic_name: 'Salbutamol', brand_name: 'Salbo', dosage_form: 'Inhaler', strength: '100 mcg/puff' },
+          { generic_name: 'Salbutamol', brand_name: 'Salbo', dosage_form: 'Nebulizer Solution', strength: '' },
+          { generic_name: 'Ipratropium', brand_name: 'Atem', dosage_form: 'Inhaler', strength: '20 mcg' },
+          { generic_name: 'Ipratropium', brand_name: 'Optra', dosage_form: 'Inhaler', strength: '20 mcg' },
+          { generic_name: 'Ipratropium', brand_name: 'Atem', dosage_form: 'Nebulizer Solution', strength: '' },
+          { generic_name: 'Ipratropium', brand_name: 'Optra', dosage_form: 'Nebulizer Solution', strength: '' },
+          { generic_name: 'Salmeterol', brand_name: 'Seretide', dosage_form: 'Inhaler', strength: '25 mcg' },
+          { generic_name: 'Beclomethasone', brand_name: 'Bekson', dosage_form: 'Inhaler', strength: '50 mcg' },
+          { generic_name: 'Beclomethasone', brand_name: 'Bekson Forte', dosage_form: 'Inhaler', strength: '250 mcg' },
+          { generic_name: 'Salbutamol + Beclomethasone', brand_name: 'Ventide', dosage_form: 'Inhaler', strength: '100/50 mcg' },
+          { generic_name: 'Salmeterol + Fluticasone', brand_name: 'Salmicort', dosage_form: 'Inhaler', strength: '25/50 mcg' },
+          { generic_name: 'Salmeterol + Fluticasone', brand_name: 'Salmicort', dosage_form: 'Inhaler', strength: '25/125 mcg' },
+          { generic_name: 'Salmeterol + Fluticasone', brand_name: 'Salmicort', dosage_form: 'Inhaler', strength: '25/250 mcg' },
+          { generic_name: 'Montelukast', brand_name: 'Montiget', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Montelukast', brand_name: 'Montiget', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Montelukast', brand_name: 'Montika', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Montelukast', brand_name: 'Montika', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Theophylline', brand_name: 'Theograd', dosage_form: 'Tablet', strength: '350 mg' },
+
+          // CNS (Neuro & Psych)
+          { generic_name: 'Sodium Valproate', brand_name: 'Epival', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Sodium Valproate', brand_name: 'Epival', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Sodium Valproate', brand_name: 'Epival', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Carbamazepine', brand_name: 'Tegral', dosage_form: 'Tablet', strength: '200 mg' },
+          { generic_name: 'Carbamazepine', brand_name: 'Seizunil', dosage_form: 'Tablet', strength: '200 mg' },
+          { generic_name: 'Carbamazepine', brand_name: 'Seizunil', dosage_form: 'Tablet', strength: '400 mg' },
+          { generic_name: 'Phenytoin', brand_name: 'Epilantin', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Phenytoin', brand_name: 'Epigran', dosage_form: 'Injection', strength: '250 mg' },
+          { generic_name: 'Phenobarbitone', brand_name: 'Phenobarbitone', dosage_form: 'Tablet', strength: '30 mg' },
+          { generic_name: 'Topiramate', brand_name: 'Topamax', dosage_form: 'Tablet', strength: '25 mg' },
+          { generic_name: 'Topiramate', brand_name: 'Topamax', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Levitiracetam', brand_name: 'Lerace', dosage_form: 'Tablet', strength: '250 mg' },
+          { generic_name: 'Levitiracetam', brand_name: 'Lerace', dosage_form: 'Tablet', strength: '500 mg' },
+          { generic_name: 'Levitiracetam', brand_name: 'Lerace', dosage_form: 'Tablet', strength: '750 mg' },
+          { generic_name: 'Clonazepam', brand_name: 'Rivotril', dosage_form: 'Tablet', strength: '0.5 mg' },
+          { generic_name: 'Clonazepam', brand_name: 'Rivotril', dosage_form: 'Tablet', strength: '2 mg' },
+          { generic_name: 'Carbidopa + Levodopa', brand_name: 'Sinemet', dosage_form: 'Tablet', strength: '275 mg' },
+          { generic_name: 'Procyclidine', brand_name: 'Kemadrin', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Amantadine', brand_name: 'Pk-Merz', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Flunarizine', brand_name: 'Sibelium', dosage_form: 'Capsule', strength: '5 mg' },
+          { generic_name: 'Sumatriptan', brand_name: 'Imigran', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Sumatriptan', brand_name: 'Imigran', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Alprazolam', brand_name: 'Xanax', dosage_form: 'Tablet', strength: '0.25 mg' },
+          { generic_name: 'Alprazolam', brand_name: 'Xanax', dosage_form: 'Tablet', strength: '0.5 mg' },
+          { generic_name: 'Alprazolam', brand_name: 'Xanax', dosage_form: 'Tablet', strength: '1 mg' },
+          { generic_name: 'Alprazolam', brand_name: 'Alp', dosage_form: 'Tablet', strength: '0.25 mg' },
+          { generic_name: 'Alprazolam', brand_name: 'Alp', dosage_form: 'Tablet', strength: '0.5 mg' },
+          { generic_name: 'Alprazolam', brand_name: 'Alp', dosage_form: 'Tablet', strength: '1 mg' },
+          { generic_name: 'Alprazolam', brand_name: 'Azolam', dosage_form: 'Tablet', strength: '0.25 mg' },
+          { generic_name: 'Alprazolam', brand_name: 'Azolam', dosage_form: 'Tablet', strength: '0.5 mg' },
+          { generic_name: 'Alprazolam', brand_name: 'Azolam', dosage_form: 'Tablet', strength: '1 mg' },
+          { generic_name: 'Bromazepam', brand_name: 'Lexotanil', dosage_form: 'Tablet', strength: '3 mg' },
+          { generic_name: 'Bromazepam', brand_name: 'Lexilium', dosage_form: 'Tablet', strength: '3 mg' },
+          { generic_name: 'Bromazepam', brand_name: 'Relaxin', dosage_form: 'Tablet', strength: '3 mg' },
+          { generic_name: 'Escitalopram', brand_name: 'Citanew', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Escitalopram', brand_name: 'Citanew', dosage_form: 'Tablet', strength: '10 mg' },
+          { generic_name: 'Escitalopram', brand_name: 'Citanew', dosage_form: 'Tablet', strength: '20 mg' },
+          { generic_name: 'Amitriptyline', brand_name: 'Tryptanol', dosage_form: 'Tablet', strength: '25 mg' },
+
+          // Vitamins, Minerals & Iron
+          { generic_name: 'Vitamin B1 (Thiamine)', brand_name: 'Nevramin', dosage_form: 'Tablet', strength: '100 mg' },
+          { generic_name: 'Vitamin B1 (Thiamine)', brand_name: 'Nevramin', dosage_form: 'Injection', strength: '100 mg/ml' },
+          { generic_name: 'Vitamin B6 (Pyridoxine)', brand_name: 'Vita 6', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Vitamin B6 (Pyridoxine)', brand_name: 'V-Six', dosage_form: 'Tablet', strength: '50 mg' },
+          { generic_name: 'Vitamin B12 (Cyanocobalamin)', brand_name: 'Cytamen', dosage_form: 'Injection', strength: '1000 mcg' },
+          { generic_name: 'Vitamin B12 (Cyanocobalamin)', brand_name: 'Cyanocobalamin', dosage_form: 'Injection', strength: '250 mg' },
+          { generic_name: 'Vitamin B12 (Cyanocobalamin)', brand_name: 'Cyanocobalamin', dosage_form: 'Injection', strength: '500 mg' },
+          { generic_name: 'Vitamin B12 (Cyanocobalamin)', brand_name: 'Cyanocobalamin', dosage_form: 'Injection', strength: '1000 mg' },
+          { generic_name: 'Vitamin B12 (Mecobalamin)', brand_name: 'Neuromet', dosage_form: 'Tablet', strength: '500 mcg' },
+          { generic_name: 'Vitamin B12 (Mecobalamin)', brand_name: 'Methycobal', dosage_form: 'Tablet', strength: '500 mcg' },
+          { generic_name: 'Vitamin B12 (Mecobalamin)', brand_name: 'Neuromet', dosage_form: 'Injection', strength: '500 mcg/ml' },
+          { generic_name: 'Vitamin B12 (Mecobalamin)', brand_name: 'Methycobal', dosage_form: 'Injection', strength: '500 mcg/ml' },
+          { generic_name: 'Vitamin B Complex', brand_name: 'Bevidox', dosage_form: 'Tablet/Injection', strength: '' },
+          { generic_name: 'Vitamin B Complex', brand_name: 'Neurobion', dosage_form: 'Tablet/Injection', strength: '' },
+          { generic_name: 'Multivitamins + Minerals', brand_name: 'Theragran-M', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Multivitamins + Minerals', brand_name: 'Surbex-Z', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Multivitamins + Minerals', brand_name: 'Optilets-M', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Multivitamins + Minerals', brand_name: 'Multibionta-M', dosage_form: 'Capsule', strength: '' },
+          { generic_name: 'Ferrous Sulphate', brand_name: 'Ferrous Sulphate', dosage_form: 'Tablet', strength: '200 mg' },
+          { generic_name: 'Folic Acid', brand_name: 'Folic Acid', dosage_form: 'Tablet', strength: '5 mg' },
+          { generic_name: 'Ferrous Sulphate + Folic Acid', brand_name: 'Fefol', dosage_form: 'Capsule', strength: '200/0.5 mg' },
+          { generic_name: 'Ferrous Sulphate + Folic Acid + Vit. B Complex + Vit. C', brand_name: 'Fefol Vit', dosage_form: 'Capsule', strength: '' },
+          { generic_name: 'Ferrous Sulphate + Folic Acid + Vit. B Complex + Vit. C', brand_name: 'Iberet Folic', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Calcium', brand_name: 'CAC-1000', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Calcium + Vit. D3', brand_name: 'CAC-1000 Plus', dosage_form: 'Tablet', strength: '' },
+          { generic_name: 'Alfacalcidol', brand_name: 'Bon-One', dosage_form: 'Tablet', strength: '0.5 mcg' },
+          { generic_name: 'Calcium Carbonate', brand_name: 'Qalsan', dosage_form: 'Tablet', strength: '' }
+        ];
+
         // --- Icons ---
         const IconWrapper = ({ children, className }) => (
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
@@ -492,7 +988,7 @@
           const [activeTab, setActiveTab] = useState('intake');
           const [loading, setLoading] = useState(false);
           const [notification, setNotification] = useState(null);
-          const [geminiKey, setGeminiKey] = useState(''); // Local state for manual override key
+          const [geminiKey, setGeminiKey] = useState(''); 
           const [showSettings, setShowSettings] = useState(false);
           const [printData, setPrintData] = useState(null); 
           const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -539,8 +1035,30 @@
           // NEW STATE FOR SPSS CODEBOOK
           const [showCodebook, setShowCodebook] = useState(false);
 
-          // Fetch With Backoff specific to Google API to prevent rate limits
-          const fetchWithBackoff = async (url, options) => {
+          // Initialize Gemini API Key from Supabase system_settings table
+          useEffect(() => {
+              const fetchCloudApiKey = async () => {
+                  if (!supabaseClient) return;
+                  try {
+                      const { data, error } = await supabaseClient
+                          .from('system_settings')
+                          .select('setting_value')
+                          .eq('setting_name', 'gemini_api_key')
+                          .single();
+                          
+                      if (data && data.setting_value) {
+                          setGeminiKey(data.setting_value);
+                      }
+                  } catch (err) {
+                      console.warn("Failed to load Cloud API key:", err.message);
+                  }
+              };
+              
+              fetchCloudApiKey();
+          }, []);
+
+          // --- Safe Fetch Function ---
+          const fetchGoogleWithBackoff = async (url, options) => {
               let delay = 1000;
               for (let i = 0; i < 5; i++) {
                   try {
@@ -638,7 +1156,7 @@
             setDrugs(drugs.map(d => d.id === id ? { ...d, [field]: value } : d));
           };
 
-          // --- DATABASE AUTOCOMPLETE HANDLERS (SUPABASE) ---
+          // --- DATABASE AUTOCOMPLETE HANDLERS (100% OFFLINE) ---
           const handleDrugSearchChange = (id, field, value) => {
               updateDrug(id, field, value);
               if (value.trim().length >= 2) {
@@ -647,79 +1165,52 @@
                   // Debounce search
                   if (window.searchTimeout) clearTimeout(window.searchTimeout);
                   
-                  window.searchTimeout = setTimeout(async () => {
-                      if (!supabaseClient) {
-                          setDrugSuggestions([]);
-                          return;
-                      }
+                  window.searchTimeout = setTimeout(() => {
+                      // Search the robust local database
+                      let results = [];
+                      const lowerValue = value.toLowerCase();
                       
-                      try {
-                          let flatResults = [];
+                      DRUG_DATABASE.forEach(d => {
+                          const genericMatches = (d.generic_name || '').toLowerCase().includes(lowerValue);
+                          const brandMatches = (d.brand_name || '').toLowerCase().includes(lowerValue);
                           
                           if (field === 'name') {
-                              const { data, error } = await supabaseClient
-                                  .from('generics')
-                                  .select('generic_name, brands(brand_name, dosage_form, strength)')
-                                  .ilike('generic_name', `%${value}%`)
-                                  .limit(10);
-                                  
-                              if (!error && data) {
-                                  data.forEach(g => {
-                                      if (g.brands && g.brands.length > 0) {
-                                          g.brands.forEach(b => {
-                                              flatResults.push({
-                                                  generic_name: g.generic_name,
-                                                  brand_name: b.brand_name,
-                                                  dosage_form: b.dosage_form,
-                                                  strength: b.strength
-                                              });
-                                          });
-                                      } else {
-                                          flatResults.push({
-                                              generic_name: g.generic_name,
-                                              brand_name: '',
-                                              dosage_form: '',
-                                              strength: ''
-                                          });
-                                      }
-                                  });
-                              }
+                             if (genericMatches || brandMatches) {
+                                  results.push(d);
+                             }
                           } else if (field === 'brand') {
-                              const { data, error } = await supabaseClient
-                                  .from('brands')
-                                  .select('brand_name, dosage_form, strength, generics(generic_name)')
-                                  .ilike('brand_name', `%${value}%`)
-                                  .limit(10);
-                                  
-                              if (!error && data) {
-                                  data.forEach(b => {
-                                      flatResults.push({
-                                          generic_name: b.generics?.generic_name || '',
-                                          brand_name: b.brand_name,
-                                          dosage_form: b.dosage_form,
-                                          strength: b.strength
-                                      });
-                                  });
-                              }
+                             if (brandMatches || genericMatches) {
+                                  results.push(d);
+                             }
                           }
-                          
-                          // Filter duplicates for cleaner display
-                          const uniqueResults = [];
-                          const seen = new Set();
-                          flatResults.forEach(r => {
-                              const key = `${r.generic_name}-${r.brand_name}-${r.dosage_form}-${r.strength}`;
-                              if(!seen.has(key)){
-                                  seen.add(key);
-                                  uniqueResults.push(r);
-                              }
-                          });
-                          
-                          setDrugSuggestions(uniqueResults.slice(0, 15)); // Limit to 15 results
-                      } catch (e) {
-                          console.error("Supabase search error:", e);
-                          setDrugSuggestions([]);
-                      }
-                  }, 300); 
+                      });
+                      
+                      // Sort results to prioritize exact or starts-with matches based on the field being searched
+                      results.sort((a, b) => {
+                          if (field === 'name') {
+                              const aGen = (a.generic_name || '').toLowerCase().startsWith(lowerValue);
+                              const bGen = (b.generic_name || '').toLowerCase().startsWith(lowerValue);
+                              return (aGen === bGen) ? 0 : aGen ? -1 : 1;
+                          } else {
+                              const aBrand = (a.brand_name || '').toLowerCase().startsWith(lowerValue);
+                              const bBrand = (b.brand_name || '').toLowerCase().startsWith(lowerValue);
+                              return (aBrand === bBrand) ? 0 : aBrand ? -1 : 1;
+                          }
+                      });
+                      
+                      // Filter duplicates for cleaner display
+                      const uniqueResults = [];
+                      const seen = new Set();
+                      results.forEach(r => {
+                          const key = `${r.generic_name}-${r.brand_name}-${r.dosage_form}-${r.strength}`;
+                          if(!seen.has(key)){
+                              seen.add(key);
+                              uniqueResults.push(r);
+                          }
+                      });
+                      
+                      setDrugSuggestions(uniqueResults.slice(0, 15)); // Limit to 15 results
+                  }, 150); // Faster debounce since we are completely offline
               } else {
                   setDrugSuggestions([]);
                   setActiveDropdown(null);
@@ -733,7 +1224,7 @@
                   ? `${suggestion.strength} ${suggestion.dosage_form}` 
                   : (suggestion.dosage_form || suggestion.strength || '');
 
-              const derivedRoute = determineRoute(suggestion.dosage_form);
+              const derivedRoute = determineRoute(doseStr);
 
               setDrugs(prevDrugs => prevDrugs.map(d => {
                   if (d.id === id) {
@@ -790,7 +1281,7 @@
 
             try {
                const effectiveKey = geminiKey.trim() || apiKey;
-               const response = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${effectiveKey}`, {
+               const response = await fetchGoogleWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${effectiveKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -902,6 +1393,29 @@
               }
           };
 
+          // Save API Key directly to Cloud Supabase
+          const saveSettings = async () => {
+              setShowSettings(false);
+              if (!supabaseClient) {
+                  setNotification({ type: 'error', message: 'Cloud sync not configured. Key not saved.' });
+                  return;
+              }
+              try {
+                  const { error } = await supabaseClient
+                      .from('system_settings')
+                      .upsert({ 
+                          setting_name: 'gemini_api_key', 
+                          setting_value: geminiKey 
+                      }, { onConflict: 'setting_name' });
+                      
+                  if (error) throw error;
+                  setNotification({ type: 'success', message: 'API Key securely saved to Cloud' });
+              } catch (err) {
+                  console.error(err);
+                  setNotification({ type: 'error', message: 'Failed to save API Key to Cloud.' });
+              }
+          };
+
           const deleteRecord = (id) => {
               setConfirmModal({
                   isOpen: true,
@@ -1009,7 +1523,7 @@
 
             try {
               const effectiveKey = geminiKey.trim() || apiKey;
-              const response = await fetchWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${effectiveKey}`, {
+              const response = await fetchGoogleWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${effectiveKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1969,20 +2483,21 @@
                         <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-2xl">
                             <h3 className="text-xl font-bold text-slate-800 mb-4">System Configuration</h3>
                             <div className="mb-4">
-                                <label className="block text-sm font-semibold text-slate-600 mb-2">Gemini API Key (Optional Override)</label>
-                                <p className="text-xs text-slate-500 mb-3">
-                                    The system uses a secured environment key by default. You can manually enter your own Google Gemini API key below to override it.
-                                </p>
+                                <label className="block text-sm font-semibold text-slate-600 mb-2">Google Gemini API Key</label>
+                                <div className="bg-blue-50 border-l-4 border-blue-500 p-3 mb-4 text-xs text-blue-800 rounded-r">
+                                    <strong>Note:</strong> The AI is built-in automatically <em>only</em> when using this app inside the Gemini Web Canvas. 
+                                    If you download this HTML file to your computer or website, you <strong>must</strong> generate a free API key from Google AI Studio and paste it below to enable AI features.
+                                </div>
                                 <input 
                                     type="password" 
                                     value={geminiKey} 
                                     onChange={(e) => setGeminiKey(e.target.value)}
-                                    className="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none font-mono text-sm"
+                                    className="w-full p-3 border border-slate-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none font-mono text-sm"
                                     placeholder="Enter manual API key (AIzaSy...)"
                                 />
                             </div>
                             <div className="flex justify-end gap-2 mt-6">
-                                <button onClick={() => setShowSettings(false)} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-bold transition-colors">Save & Close</button>
+                                <button onClick={saveSettings} className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded font-bold transition-colors shadow-sm">Save & Close</button>
                             </div>
                         </div>
                     </div>
