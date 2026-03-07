@@ -846,10 +846,20 @@
                       .limit(1);
                       
                   if (!existingBrand || existingBrand.length === 0) {
+                      // Get max ID for brands
+                      const { data: maxBrandIdData } = await supabaseClient
+                          .from('brands')
+                          .select('id')
+                          .order('id', { ascending: false })
+                          .limit(1);
+                          
+                      const newBrandId = (maxBrandIdData && maxBrandIdData.length > 0) ? parseInt(maxBrandIdData[0].id) + 1 : 1000;
+
                       // 3. Insert new brand
                       const { error: insertBrandErr } = await supabaseClient
                           .from('brands')
                           .insert([{ 
+                              id: newBrandId,
                               generic_id: genericId, 
                               brand_name: brandName, 
                               dosage_form: dosageForm, 
