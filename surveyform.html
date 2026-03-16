@@ -1567,11 +1567,11 @@
                     <div className="space-y-4">
                       {drugs.map((drug, i) => (
                         <div key={drug.id} className="flex flex-col gap-3 bg-slate-50 p-4 rounded-lg border border-slate-200 shadow-sm relative">
-                          <div className="flex flex-col md:flex-row gap-4 md:items-end w-full">
-                              <div className="absolute top-2 left-2 w-6 h-6 bg-slate-200 text-slate-500 rounded-full flex items-center justify-center text-xs font-bold md:static md:w-8 md:h-auto md:bg-transparent md:text-slate-400 md:pb-1 md:text-center">{i+1}</div>
+                          <div className="flex flex-col lg:flex-row gap-4 lg:items-end w-full">
+                              <div className="absolute top-2 left-2 w-6 h-6 bg-slate-200 text-slate-500 rounded-full flex items-center justify-center text-xs font-bold lg:static lg:w-8 lg:h-auto lg:bg-transparent lg:text-slate-400 lg:pb-1 lg:text-center">{i+1}</div>
                               
                               {/* LIVE AUTOCOMPLETE DATABASE SEARCH */}
-                              <div className="flex-grow w-full mt-6 md:mt-0 relative">
+                              <div className="flex-1 min-w-0 w-full mt-6 lg:mt-0 relative">
                                 <label className="text-xs font-semibold text-slate-500 mb-1 block">Generic Name</label>
                                 <div className="flex">
                                     <input 
@@ -1580,13 +1580,13 @@
                                         onChange={(e) => handleDrugSearchChange(drug.id, 'name', e.target.value)} 
                                         onFocus={(e) => handleDrugSearchChange(drug.id, 'name', e.target.value)}
                                         onBlur={() => setTimeout(() => setActiveDropdown(null), 200)}
-                                        className="w-full p-2 md:p-1 border rounded-l bg-white" 
+                                        className="w-full p-2 lg:p-1 border rounded-l bg-white" 
                                         placeholder="Type generic name..." 
                                         autoComplete="off"
                                     />
                                     <button 
                                         onClick={() => lookupDrugDetails(drug.id, drug.name)} 
-                                        className="bg-indigo-50 p-2 md:p-1 border-y border-r rounded-r text-indigo-600 hover:bg-indigo-100 disabled:opacity-50" 
+                                        className="bg-indigo-50 p-2 lg:p-1 border-y border-r rounded-r text-indigo-600 hover:bg-indigo-100 disabled:opacity-50 shrink-0" 
                                         title="AI Smart Fill"
                                         disabled={lookupLoading[drug.id]}
                                     >
@@ -1595,7 +1595,7 @@
                                 </div>
                                 {/* Dropdown Menu - Card Style */}
                                 {activeDropdown?.id === drug.id && activeDropdown?.field === 'name' && drugSuggestions.length > 0 && (
-                                    <div className="absolute z-50 w-full md:w-80 bg-slate-50 border border-slate-200 mt-1 rounded-md shadow-xl max-h-60 overflow-y-auto p-2">
+                                    <div className="absolute z-50 w-full lg:w-80 bg-slate-50 border border-slate-200 mt-1 rounded-md shadow-xl max-h-60 overflow-y-auto p-2">
                                         <div className="text-xs font-bold text-slate-500 mb-2 px-1">Select a Medication:</div>
                                         <div className="grid grid-cols-1 gap-2">
                                             {drugSuggestions.map((suggestion, idx) => {
@@ -1629,7 +1629,7 @@
                                 )}
                               </div>
 
-                              <div className="flex-grow w-full relative">
+                              <div className="flex-1 min-w-0 w-full relative">
                                 <label className="text-xs font-semibold text-slate-500 mb-1 block">Brand (Optional)</label>
                                 <div className="flex">
                                     <input 
@@ -1638,13 +1638,13 @@
                                         onChange={(e) => handleDrugSearchChange(drug.id, 'brand', e.target.value)} 
                                         onFocus={(e) => handleDrugSearchChange(drug.id, 'brand', e.target.value)}
                                         onBlur={() => setTimeout(() => setActiveDropdown(null), 200)}
-                                        className="w-full p-2 md:p-1 border rounded-l bg-white" 
+                                        className="w-full p-2 lg:p-1 border rounded-l bg-white" 
                                         placeholder="Search Brand..." 
                                         autoComplete="off"
                                     />
                                     <button 
                                         onClick={() => lookupDrugDetails(drug.id, drug.brand || drug.name)} 
-                                        className="bg-indigo-50 p-2 md:p-1 border-y border-r rounded-r text-indigo-600 hover:bg-indigo-100 disabled:opacity-50" 
+                                        className="bg-indigo-50 p-2 lg:p-1 border-y border-r rounded-r text-indigo-600 hover:bg-indigo-100 disabled:opacity-50 shrink-0" 
                                         title="AI Smart Fill"
                                         disabled={lookupLoading[drug.id]}
                                     >
@@ -1653,7 +1653,7 @@
                                 </div>
                                 {/* Dropdown Menu for Brand - Card Style */}
                                 {activeDropdown?.id === drug.id && activeDropdown?.field === 'brand' && drugSuggestions.length > 0 && (
-                                    <div className="absolute z-50 w-full md:w-80 bg-slate-50 border border-slate-200 mt-1 rounded-md shadow-xl max-h-60 overflow-y-auto p-2">
+                                    <div className="absolute z-50 w-full lg:w-80 bg-slate-50 border border-slate-200 mt-1 rounded-md shadow-xl max-h-60 overflow-y-auto p-2">
                                         <div className="text-xs font-bold text-slate-500 mb-2 px-1">Select a Medication:</div>
                                         <div className="grid grid-cols-1 gap-2">
                                             {drugSuggestions.map((suggestion, idx) => {
@@ -1687,15 +1687,15 @@
                                 )}
                               </div>
 
-                              <div className="flex flex-row md:flex-row gap-3 w-full md:w-auto">
-                                  <div className="w-1/3 md:w-20">
+                              <div className="flex flex-row gap-3 w-full lg:w-auto shrink-0">
+                                  <div className="flex-1 lg:flex-none lg:w-20">
                                     <label className="text-xs font-semibold text-slate-500 block mb-1">Dose</label>
-                                    <input type="text" value={drug.dose} onChange={(e) => updateDrug(drug.id, 'dose', e.target.value)} className="w-full p-2 md:p-1 border rounded bg-white" placeholder="mg" />
+                                    <input type="text" value={drug.dose} onChange={(e) => updateDrug(drug.id, 'dose', e.target.value)} className="w-full p-2 lg:p-1 border rounded bg-white" placeholder="mg" />
                                   </div>
                                   
-                                  <div className="w-1/3 md:w-24">
+                                  <div className="flex-1 lg:flex-none lg:w-28">
                                     <label className="text-xs font-semibold text-slate-500 block mb-1">Freq</label>
-                                    <select value={drug.freq} onChange={(e) => updateDrug(drug.id, 'freq', e.target.value)} className="w-full p-2 md:p-1 border rounded bg-white">
+                                    <select value={drug.freq} onChange={(e) => updateDrug(drug.id, 'freq', e.target.value)} className="w-full p-2 lg:p-1 border rounded bg-white">
                                         <option value="OD">OD (Once Daily)</option>
                                         <option value="BID">BID (2x/Day)</option>
                                         <option value="TID">TID (3x/Day)</option>
@@ -1711,9 +1711,9 @@
                                     </select>
                                   </div>
                                   
-                                  <div className="w-1/3 md:w-24">
+                                  <div className="flex-1 lg:flex-none lg:w-28">
                                     <label className="text-xs font-semibold text-slate-500 block mb-1">Route</label>
-                                    <select value={drug.route} onChange={(e) => updateDrug(drug.id, 'route', e.target.value)} className="w-full p-2 md:p-1 border rounded bg-white">
+                                    <select value={drug.route} onChange={(e) => updateDrug(drug.id, 'route', e.target.value)} className="w-full p-2 lg:p-1 border rounded bg-white">
                                         <option value="Oral">Oral</option>
                                         <option value="IV">IV</option>
                                         <option value="IM">IM</option>
@@ -1725,7 +1725,7 @@
                                   </div>
                               </div>
                               
-                              <button onClick={() => removeDrug(drug.id)} className="absolute top-2 right-2 md:static text-slate-400 hover:text-red-600 md:p-2 md:mb-0.5 transition-colors bg-white md:bg-transparent rounded-full shadow-sm md:shadow-none p-1" title="Remove Medication Box">
+                              <button onClick={() => removeDrug(drug.id)} className="absolute top-2 right-2 lg:static text-slate-400 hover:text-red-600 lg:p-2 lg:mb-0.5 transition-colors bg-white lg:bg-transparent rounded-full shadow-sm lg:shadow-none p-1" title="Remove Medication Box">
                                   <XCircle className="w-5 h-5"/>
                               </button>
                           </div>
@@ -1907,7 +1907,7 @@
               <div className="max-w-6xl mx-auto">
                 <h2 className="text-2xl font-bold text-slate-900 mb-6">Clinical Analytics Dashboard</h2>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8">
                    <div className="bg-white p-6 rounded-lg shadow-sm border border-slate-200">
                      <div className="text-slate-500 text-sm font-medium mb-1">Total Interactions</div>
                      <div className="text-4xl font-bold text-slate-900">{interactions.length}</div>
@@ -2002,26 +2002,26 @@
                               <table className="w-full text-sm text-left min-w-[800px]">
                                  <thead className="bg-slate-50 text-slate-700 font-bold border-b">
                                      <tr>
-                                         <th className="p-4">Patient ID</th>
-                                         <th className="p-4">Date</th>
-                                         <th className="p-4">Demographics</th>
-                                         <th className="p-4">Condition</th>
-                                         <th className="p-4">Clinical Analysis</th>
-                                         <th className="p-4 text-right">Action</th>
+                                         <th className="p-4 whitespace-nowrap">Patient ID</th>
+                                         <th className="p-4 whitespace-nowrap">Date</th>
+                                         <th className="p-4 whitespace-nowrap">Demographics</th>
+                                         <th className="p-4 min-w-[150px]">Condition</th>
+                                         <th className="p-4 whitespace-nowrap">Clinical Analysis</th>
+                                         <th className="p-4 text-right whitespace-nowrap">Action</th>
                                      </tr>
                                  </thead>
                                  <tbody className="divide-y">
                                      {savedRecords.map((rec, i) => (
                                          <tr key={i} className="hover:bg-slate-50">
-                                             <td className="p-4 font-mono font-bold text-indigo-600">{rec.patientId}</td>
-                                             <td className="p-4 text-slate-500">{new Date(rec.timestamp).toLocaleDateString()}</td>
-                                             <td className="p-4">{rec.demographics?.age || 'N/A'}y / {rec.demographics?.gender || 'N/A'}</td>
+                                             <td className="p-4 font-mono font-bold text-indigo-600 whitespace-nowrap">{rec.patientId}</td>
+                                             <td className="p-4 text-slate-500 whitespace-nowrap">{new Date(rec.timestamp).toLocaleDateString()}</td>
+                                             <td className="p-4 whitespace-nowrap">{rec.demographics?.age || 'N/A'}y / {rec.demographics?.gender || 'N/A'}</td>
                                              <td className="p-4 text-slate-600">
-                                                 <div className="font-bold">{rec.demographics?.primary_diagnosis || 'N/A'}</div>
-                                                 <div className="text-xs">{rec.demographics?.comorbidities || 'None'}</div>
+                                                 <div className="font-bold truncate max-w-[200px]" title={rec.demographics?.primary_diagnosis}>{rec.demographics?.primary_diagnosis || 'N/A'}</div>
+                                                 <div className="text-xs truncate max-w-[200px]" title={rec.demographics?.comorbidities}>{rec.demographics?.comorbidities || 'None'}</div>
                                              </td>
                                              <td className="p-4">
-                                                 <div className="flex flex-col gap-1 items-start">
+                                                 <div className="flex flex-col gap-1 items-start whitespace-nowrap">
                                                      <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold border ${rec.interactions?.length > 0 ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
                                                          {rec.interactions?.length > 0 ? 'Analysis Done' : 'Pending / Clear'}
                                                      </span>
@@ -2030,19 +2030,19 @@
                                                      </span>
                                                  </div>
                                              </td>
-                                             <td className="p-4 text-right flex justify-end gap-2">
+                                             <td className="p-4 text-right flex justify-end gap-2 whitespace-nowrap">
                                                  {(!rec.interactions || rec.interactions.length === 0) && (
-                                                     <button onClick={() => analyzeRecordFromList(rec)} className="text-emerald-600 hover:text-emerald-800 p-1 flex items-center gap-1 font-semibold text-xs border border-emerald-200 rounded px-2 bg-emerald-50" title="Run Analysis">
-                                                         <BrainCircuit className="w-3 h-3"/> Analyze
+                                                     <button onClick={() => analyzeRecordFromList(rec)} className="text-emerald-600 hover:text-emerald-800 p-1.5 flex items-center gap-1 font-semibold text-xs border border-emerald-200 rounded px-3 bg-emerald-50" title="Run Analysis">
+                                                         <BrainCircuit className="w-3.5 h-3.5"/> Analyze
                                                      </button>
                                                  )}
-                                                 <button onClick={() => openPrintModal(rec)} className="text-slate-600 hover:text-slate-900 p-1 flex items-center gap-1 font-semibold text-xs border border-slate-200 rounded px-2 bg-white" title="View & Print">
-                                                     <Printer className="w-3 h-3"/> View
+                                                 <button onClick={() => openPrintModal(rec)} className="text-slate-600 hover:text-slate-900 p-1.5 flex items-center gap-1 font-semibold text-xs border border-slate-200 rounded px-2 bg-white" title="View & Print">
+                                                     <Printer className="w-3.5 h-3.5"/> View
                                                  </button>
-                                                 <button onClick={() => loadRecordForEditing(rec)} className="text-indigo-600 hover:text-indigo-800 p-1 flex items-center gap-1 font-semibold text-xs border border-indigo-200 rounded px-2 bg-indigo-50">
-                                                     <Edit className="w-3 h-3"/> Edit Case
+                                                 <button onClick={() => loadRecordForEditing(rec)} className="text-indigo-600 hover:text-indigo-800 p-1.5 flex items-center gap-1 font-semibold text-xs border border-indigo-200 rounded px-2 bg-indigo-50">
+                                                     <Edit className="w-3.5 h-3.5"/> Edit
                                                  </button>
-                                                 <button onClick={() => deleteRecord(rec.patientId)} className="text-red-500 hover:text-red-700 p-1" title="Delete Record">
+                                                 <button onClick={() => deleteRecord(rec.patientId)} className="text-red-500 hover:text-red-700 p-1.5" title="Delete Record">
                                                      <Trash2 className="w-4 h-4"/>
                                                  </button>
                                              </td>
@@ -2225,7 +2225,7 @@
           return (
             <>
               {/* --- MAIN APP INTERFACE (HIDDEN ON PRINT) --- */}
-              <div className="min-h-screen bg-slate-100 font-sans text-slate-900 flex overflow-hidden print:hidden w-full">
+              <div className="h-screen bg-slate-100 font-sans text-slate-900 flex overflow-hidden print:hidden w-full">
                 {/* Settings Modal */}
                 {showSettings && (
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 app-interface">
@@ -2358,7 +2358,7 @@
                 </div>
 
                 {/* Main View Area */}
-                <div className="flex-grow w-full h-screen overflow-y-auto pt-20 md:pt-8 p-4 md:p-8 relative transition-all duration-300">
+                <div className="flex-1 min-w-0 h-full overflow-y-auto pt-20 md:pt-8 p-4 lg:p-8 relative transition-all duration-300">
                   <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 md:mb-8 gap-4 no-print">
                      <div>
                        <h2 className="text-2xl md:text-3xl font-bold text-slate-800 capitalize">{activeTab.replace('-', ' ')}</h2>
