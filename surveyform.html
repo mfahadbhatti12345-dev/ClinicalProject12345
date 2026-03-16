@@ -963,8 +963,8 @@
 
             try {
                const effectiveKey = geminiKey.trim() || apiKey;
-               // If using the server-saved key, use the stable public model. Otherwise, use Canvas preview.
-               const modelName = geminiKey.trim() ? "gemini-1.5-flash" : "gemini-2.5-flash-preview-09-2025";
+               // Use public model if custom key is provided, otherwise use Canvas preview model
+               const modelName = geminiKey.trim() ? "gemini-2.5-flash" : "gemini-2.5-flash-preview-09-2025";
                const response = await fetchGoogleWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${effectiveKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -998,9 +998,7 @@
 
             } catch (e) {
                 console.error("Lookup failed", e);
-                const isProxyError = e.message.includes('404') && geminiKey.trim();
-                const errorMsg = isProxyError ? 'Canvas Proxy blocked custom key. Download HTML to run.' : `AI Lookup Failed: ${e.message}`;
-                setNotification({ type: 'error', message: errorMsg });
+                setNotification({ type: 'error', message: `AI Lookup Failed: ${e.message}` });
             } finally {
                 setLookupLoading(prev => ({ ...prev, [id]: false }));
             }
@@ -1209,8 +1207,8 @@
 
             try {
               const effectiveKey = geminiKey.trim() || apiKey;
-              // If using the server-saved key, use the stable public model. Otherwise, use Canvas preview.
-              const modelName = geminiKey.trim() ? "gemini-1.5-flash" : "gemini-2.5-flash-preview-09-2025";
+              // Use public model if custom key is provided, otherwise use Canvas preview model
+              const modelName = geminiKey.trim() ? "gemini-2.5-flash" : "gemini-2.5-flash-preview-09-2025";
               const response = await fetchGoogleWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${effectiveKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1229,9 +1227,7 @@
               setNotification({ type: 'success', message: 'Analysis Complete' });
             } catch (error) {
               console.error(error);
-              const isProxyError = error.message.includes('404') && geminiKey.trim();
-              const errorMsg = isProxyError ? 'Canvas Proxy blocked custom key. Download HTML to run.' : `AI Analysis Failed: ${error.message}`;
-              setNotification({ type: 'error', message: errorMsg });
+              setNotification({ type: 'error', message: `AI Analysis Failed: ${error.message}` });
               setInteractions([
                 {
                   pair: "System Demo: Warfarin + Amiodarone",
@@ -2298,7 +2294,7 @@
                      </div>
                      <div className="flex gap-3">
                         <div className="px-3 py-1 bg-white border rounded-full text-xs font-medium text-slate-600 flex items-center gap-2">
-                           <span className={`w-2 h-2 rounded-full ${geminiKey ? 'bg-purple-500' : 'bg-green-500'}`}></span> {geminiKey ? 'Using Server API Key' : 'Using Canvas API Key'}
+                           <span className={`w-2 h-2 rounded-full bg-green-500`}></span> {geminiKey ? 'AI Online (Custom Key)' : 'AI Online'}
                         </div>
                         <div className="px-3 py-1 bg-white border rounded-full text-xs font-medium text-slate-600 flex items-center gap-2">
                            <span className={`w-2 h-2 rounded-full ${supabaseClient ? 'bg-green-500' : 'bg-red-500'}`}></span> {supabaseClient ? 'Cloud Sync On' : 'Local Only'}
