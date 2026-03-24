@@ -1471,6 +1471,8 @@
                   const inters = rec.interactions || [];
                   const disp = rec.disposition || {};
 
+                  // Count the number of primary diagnosis terms (comma-separated)
+                  const numDiagnosis = demo.primary_diagnosis ? demo.primary_diagnosis.split(',').filter(d => d.trim() !== '').length : 0;
                   const numComorbidities = demo.comorbidities ? demo.comorbidities.split(',').filter(c => c.trim() !== '').length : 0;
                   const hasRenalImpairment = (demo.crcl && parseInt(demo.crcl) < 60) || demo.rft_enabled ? 1 : 0;
                   const hasHepaticImpairment = demo.lft_enabled ? 1 : 0;
@@ -1496,10 +1498,10 @@
                       Sr_No: index + 1,
                       Patient_ID: rec.patientId,
                       Age: demo.age || '',
-                      Gender: demo.gender || '',
+                      Gender: demo.gender === 'Female' ? 2 : 1, // Optional: numeric gender (1=Male, 2=Female)
                       Ward_Type: demo.ward || '',
                       Length_of_Stay_Days: demo.daysAdmitted || 0,
-                      Primary_Diagnosis: demo.primary_diagnosis || '',
+                      Primary_Diagnosis: numDiagnosis,
                       Number_of_Comorbidities: numComorbidities,
                       Renal_Impairment: hasRenalImpairment,
                       Hepatic_Impairment: hasHepaticImpairment,
@@ -2332,10 +2334,10 @@
                   { variable: "Sr_No", measure: "Scale", type: "Numeric", coding: "Sequential record number" },
                   { variable: "Patient_ID", measure: "Nominal", type: "String", coding: "Alphanumeric ID (e.g., PT-123)" },
                   { variable: "Age", measure: "Scale", type: "Numeric", coding: "Continuous integer (Years)" },
-                  { variable: "Gender", measure: "Nominal", type: "String", coding: "Text: 'Male', 'Female'" },
+                  { variable: "Gender", measure: "Nominal", type: "Numeric", coding: "1 = Male, 2 = Female" },
                   { variable: "Ward_Type", measure: "Nominal", type: "String", coding: "Text: 'General Ward', 'ICU', etc." },
                   { variable: "Length_of_Stay_Days", measure: "Scale", type: "Numeric", coding: "Continuous integer (Days)" },
-                  { variable: "Primary_Diagnosis", measure: "Nominal", type: "String", coding: "Free text diagnosis" },
+                  { variable: "Primary_Diagnosis", measure: "Scale", type: "Numeric", coding: "Count of listed primary diagnoses (0, 1, 2...)" },
                   { variable: "Number_of_Comorbidities", measure: "Scale", type: "Numeric", coding: "Count of listed comorbidities (0, 1, 2...)" },
                   { variable: "Renal_Impairment", measure: "Nominal", type: "Numeric", coding: "0 = No (CrCl >= 60), 1 = Yes (CrCl < 60 or monitored)" },
                   { variable: "Hepatic_Impairment", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (LFT monitored)" },
