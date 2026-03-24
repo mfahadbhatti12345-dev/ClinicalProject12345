@@ -1398,7 +1398,9 @@
           
           // Generalized Normal Data (Human Readable, Descriptive, Strings, Lists)
           const generateNormalData = () => {
-              return savedRecords.map(rec => {
+              return savedRecords
+                  .filter(rec => rec.interactions && rec.interactions.length > 0)
+                  .map((rec, index) => {
                   const demo = rec.demographics || {};
                   const meds = rec.medications || [];
                   const inters = rec.interactions || [];
@@ -1427,6 +1429,7 @@
                   const mortality = disp.outcome === 'Deceased' ? 1 : 0;
 
                   return {
+                      Sr_No: index + 1,
                       Patient_ID: rec.patientId,
                       Age: demo.age || '',
                       Gender: demo.gender || '',
@@ -1460,7 +1463,9 @@
 
           // SPSS Format (Binary flags, strict numerics, isolated variables for stats)
           const generateSpssData = () => {
-              return savedRecords.map(rec => {
+              return savedRecords
+                  .filter(rec => rec.interactions && rec.interactions.length > 0)
+                  .map((rec, index) => {
                   const demo = rec.demographics || {};
                   const meds = rec.medications || [];
                   const inters = rec.interactions || [];
@@ -1488,6 +1493,7 @@
                   const mortality = disp.outcome === 'Deceased' ? 1 : 0;
 
                   return {
+                      Sr_No: index + 1,
                       Patient_ID: rec.patientId,
                       Age: demo.age || '',
                       Gender: demo.gender || '',
@@ -2323,6 +2329,7 @@
               
               // SPSS Data Dictionary Definition
               const spssCodebook = [
+                  { variable: "Sr_No", measure: "Scale", type: "Numeric", coding: "Sequential record number" },
                   { variable: "Patient_ID", measure: "Nominal", type: "String", coding: "Alphanumeric ID (e.g., PT-123)" },
                   { variable: "Age", measure: "Scale", type: "Numeric", coding: "Continuous integer (Years)" },
                   { variable: "Gender", measure: "Nominal", type: "String", coding: "Text: 'Male', 'Female'" },
