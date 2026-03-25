@@ -128,7 +128,7 @@
         const Pill = (props) => <IconWrapper {...props}><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path><line x1="8.5" y1="8.5" x2="15.5" y2="15.5"></line></IconWrapper>;
         const Cloud = (props) => <IconWrapper {...props}><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path></IconWrapper>;
         const Edit = (props) => <IconWrapper {...props}><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></IconWrapper>;
-        const Settings = (props) => <IconWrapper {...props}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></IconWrapper>;
+        const Settings = (props) => <IconWrapper {...props}><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></IconWrapper>;
         const Printer = (props) => <IconWrapper {...props}><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></IconWrapper>;
         const ExternalLink = (props) => <IconWrapper {...props}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></IconWrapper>;
         const X = (props) => <IconWrapper {...props}><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></IconWrapper>;
@@ -574,7 +574,6 @@
           const [activeTab, setActiveTab] = useState('intake');
           const [dashTab, setDashTab] = useState('analytics'); // Sub-tab for Dashboard
           const [loading, setLoading] = useState(false);
-          const [loadingDiagnoses, setLoadingDiagnoses] = useState(false);
           const [notification, setNotification] = useState(null);
           const [geminiKey, setGeminiKey] = useState(''); 
           const [showSettings, setShowSettings] = useState(false);
@@ -619,6 +618,9 @@
             bilirubin: '', 
             primary_diagnosis: '', 
             comorbidities: '',       
+            primary_diagnosis_categories: [],
+            comorbidities_categories: [],
+            ai_detected_diagnosis: '',
             intervention: 'Monitoring Only',
             outcome: 'Stable',
             daysAdmitted: 3,
@@ -757,85 +759,24 @@
             });
           };
 
-          // --- Diagnosis Auto-Fill Logic ---
-          const autoFillDiagnoses = async () => {
-              const activeDrugs = drugs.filter(d => d.name.trim() !== '');
-              if (activeDrugs.length === 0) {
-                  setNotification({ type: 'error', message: 'Please add medications first to auto-deduce diagnoses.' });
-                  return;
-              }
-
-              setLoadingDiagnoses(true);
-              try {
-                  const context = `
-                    You are an expert Clinical Pharmacologist. 
-                    The patient is taking the following medications: ${activeDrugs.map(d => d.name).join(', ')}.
-                    
-                    Task:
-                    Deduce the most likely Primary Diagnosis and Comorbidities strictly using ONLY the terms from this exact list:
-                    ${CLINICAL_CATEGORIES.map(c => c.items.join(', ')).join(', ')}
-
-                    Rules:
-                    1. "primary_diagnosis" must be a single string (the most prominent indication).
-                    2. "comorbidities" must be a comma-separated string of other likely conditions.
-                    3. Do NOT make up terms. Use EXACT matches from the list provided above.
-
-                    Return valid JSON ONLY:
-                    {
-                      "primary_diagnosis": "Term",
-                      "comorbidities": "Term 1, Term 2"
-                    }
-                  `;
-                  
-                  const effectiveKey = geminiKey.trim() || apiKey;
-                  const modelName = geminiKey.trim() ? "gemini-2.5-flash" : "gemini-2.5-flash-preview-09-2025";
-                  const response = await fetchGoogleWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${effectiveKey}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                      contents: [{ parts: [{ text: context }] }],
-                      generationConfig: { responseMimeType: "application/json" }
-                    })
-                  });
-
-                  const data = await response.json();
-                  const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
-                  const result = JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim());
-
-                  setPatient(prev => ({
-                      ...prev,
-                      primary_diagnosis: result.primary_diagnosis || prev.primary_diagnosis,
-                      comorbidities: result.comorbidities || prev.comorbidities
-                  }));
-                  
-                  setNotification({ type: 'success', message: 'Diagnoses auto-filled based on medications.' });
-
-              } catch (e) {
-                  console.error(e);
-                  setNotification({ type: 'error', message: `AI Deduction Failed: ${e.message}` });
-              } finally {
-                  setLoadingDiagnoses(false);
-              }
-          };
-
           // --- Diagnosis Toggle Logic ---
           const toggleDiagnosis = (item, field) => {
-              const currentStr = patient[field] || "";
-              let currentItems = currentStr.split(',').map(s => s.trim()).filter(s => s !== '');
+              const catField = field + '_categories';
+              let currentItems = patient[catField] || [];
               
               if (currentItems.includes(item)) {
                   // Remove item
                   currentItems = currentItems.filter(i => i !== item);
               } else {
                   // Add item
-                  currentItems.push(item);
+                  currentItems = [...currentItems, item];
               }
-              setPatient({ ...patient, [field]: currentItems.join(', ') });
+              setPatient({ ...patient, [catField]: currentItems });
           };
 
           const isDiagnosisSelected = (item, field) => {
-              const currentStr = patient[field] || "";
-              const currentItems = currentStr.split(',').map(s => s.trim()).filter(s => s !== '');
+              const catField = field + '_categories';
+              const currentItems = patient[catField] || [];
               return currentItems.includes(item);
           };
 
@@ -1391,7 +1332,7 @@
               - Admission: ${pat.daysAdmitted} Days starting ${pat.admissionDate}.
               - Renal Function: CrCl: ${pat.crcl || 'N/A'}, Serum Creatinine: ${pat.rft_enabled ? pat.serum_creatinine + ' mg/dL' : 'Not Monitored'}.
               - Hepatic Function: Bilirubin: ${pat.lft_enabled ? pat.bilirubin + ' mg/dL' : 'Not Monitored'}.
-              - Diagnosis: ${pat.primary_diagnosis || 'Not Specified'}.
+              - Diagnosis/Symptoms/PC: ${pat.primary_diagnosis || 'Not Specified'}.
               - Comorbidities: ${pat.comorbidities || 'None'}.
               
               MEDICATION SCHEDULE (Day by Day Analysis Required):
@@ -1408,10 +1349,12 @@
               1. Identify Drug-Drug and Drug-Disease interactions based on the logic above.
               2. Provide output in extremely concise, line-by-line format. DO NOT write long paragraphs or comprehensive explanations.
               3. Identify exactly WHICH DAYS in the schedule the interaction is active.
+              4. Based on the patient's demographics, medications, and listed conditions (including symptoms, presenting complaints (PC), and comorbidities), independently deduce the single most likely underlying primary clinical diagnosis. Provide this as a concise string.
 
               OUTPUT FORMAT: JSON ONLY.
               Structure:
               {
+                "detected_primary_diagnosis": "Short Name of Diagnosis",
                 "interactions": [
                   {
                     "pair": "Drug A + Drug B",
@@ -1444,18 +1387,24 @@
             const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
             const result = JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim());
             
-            return result.interactions || [];
+            return {
+                interactions: result.interactions || [],
+                detected_primary_diagnosis: result.detected_primary_diagnosis || ''
+            };
           };
 
           const runClinicalAnalysis = async () => {
             setLoading(true);
             try {
-              const interactionsResult = await fetchAIInteractions(patient, drugs);
+              const aiResult = await fetchAIInteractions(patient, drugs);
+              const interactionsResult = aiResult.interactions || [];
+              const aiDx = aiResult.detected_primary_diagnosis || '';
               
               // Sort interactions by Severity (Major > Moderate > Minor > Monitoring)
               const severityOrder = { "Major": 1, "Moderate": 2, "Minor": 3, "Monitoring": 4 };
               interactionsResult.sort((a, b) => (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5));
 
+              setPatient(prev => ({ ...prev, ai_detected_diagnosis: aiDx }));
               setInteractions(interactionsResult);
               setActiveTab('analysis');
               setNotification({ type: 'success', message: 'Analysis Complete' });
@@ -1479,11 +1428,15 @@
                       try {
                           const pat = { ...getInitialPatientState(), ...(record.demographics || {}) };
                           const drg = record.medications || [];
-                          const interactionsResult = await fetchAIInteractions(pat, drg);
+                          const aiResult = await fetchAIInteractions(pat, drg);
+                          const interactionsResult = aiResult.interactions || [];
+                          const aiDx = aiResult.detected_primary_diagnosis || '';
                           
                           // Sort interactions by Severity
                           const severityOrder = { "Major": 1, "Moderate": 2, "Minor": 3, "Monitoring": 4 };
                           interactionsResult.sort((a, b) => (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5));
+
+                          pat.ai_detected_diagnosis = aiDx;
 
                           setPatient(pat);
                           setDrugs(drg);
@@ -1539,10 +1492,9 @@
           };
 
           // --- Helper: Generate Export Category Features ---
-          const hasCategory = (textString, catIndex) => {
-              if (!textString) return 0;
-              const lowerStr = textString.toLowerCase();
-              return CLINICAL_CATEGORIES[catIndex].items.some(item => lowerStr.includes(item.toLowerCase())) ? 1 : 0;
+          const hasCategory = (categoriesArray, catIndex) => {
+              if (!categoriesArray || !Array.isArray(categoriesArray)) return 0;
+              return CLINICAL_CATEGORIES[catIndex].items.some(item => categoriesArray.includes(item)) ? 1 : 0;
           };
 
           // --- Distinct Data Export Logic ---
@@ -1563,6 +1515,7 @@
                   const hasRenalImpairment = (demo.crcl && parseInt(demo.crcl) < 60) || (demo.rft_enabled && !isNaN(scr) && scr > 1.2) ? 1 : 0;
                   const hasHepaticImpairment = (demo.lft_enabled && !isNaN(tbil) && tbil > 1.2) ? 1 : 0;
                   
+                  const numComorbidities = demo.comorbidities ? demo.comorbidities.split(',').filter(c => c.trim() !== '').length : 0;
                   const totalDrugs = meds.length;
                   const polypharmacy = totalDrugs >= 5 ? 1 : 0;
                   
@@ -1590,26 +1543,26 @@
                       Length_of_Stay_Days: demo.daysAdmitted || 0,
                       Primary_Diagnosis_Text: demo.primary_diagnosis || 'None',
                       Comorbidities_Text: demo.comorbidities || 'None',
-                      Primary_Cat_Cardio: hasCategory(demo.primary_diagnosis, 0) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Cardio: hasCategory(demo.comorbidities, 0) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Endocrine: hasCategory(demo.primary_diagnosis, 1) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Endocrine: hasCategory(demo.comorbidities, 1) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Respiratory: hasCategory(demo.primary_diagnosis, 2) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Respiratory: hasCategory(demo.comorbidities, 2) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Neuro: hasCategory(demo.primary_diagnosis, 3) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Neuro: hasCategory(demo.comorbidities, 3) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_GI: hasCategory(demo.primary_diagnosis, 4) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_GI: hasCategory(demo.comorbidities, 4) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Renal: hasCategory(demo.primary_diagnosis, 5) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Renal: hasCategory(demo.comorbidities, 5) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Infectious: hasCategory(demo.primary_diagnosis, 6) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Infectious: hasCategory(demo.comorbidities, 6) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Musculo: hasCategory(demo.primary_diagnosis, 7) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Musculo: hasCategory(demo.comorbidities, 7) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Oncology: hasCategory(demo.primary_diagnosis, 8) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Oncology: hasCategory(demo.comorbidities, 8) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Psych: hasCategory(demo.primary_diagnosis, 9) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Psych: hasCategory(demo.comorbidities, 9) === 1 ? 'Yes' : 'No',
+                      Primary_Cat_Cardio: hasCategory(demo.primary_diagnosis_categories, 0) === 1 ? 'Yes' : 'No',
+                      Comorb_Cat_Cardio: hasCategory(demo.comorbidities_categories, 0) === 1 ? 'Yes' : 'No',
+                      Primary_Cat_Endocrine: hasCategory(demo.primary_diagnosis_categories, 1) === 1 ? 'Yes' : 'No',
+                      Comorb_Cat_Endocrine: hasCategory(demo.comorbidities_categories, 1) === 1 ? 'Yes' : 'No',
+                      Primary_Cat_Respiratory: hasCategory(demo.primary_diagnosis_categories, 2) === 1 ? 'Yes' : 'No',
+                      Comorb_Cat_Respiratory: hasCategory(demo.comorbidities_categories, 2) === 1 ? 'Yes' : 'No',
+                      Primary_Cat_Neuro: hasCategory(demo.primary_diagnosis_categories, 3) === 1 ? 'Yes' : 'No',
+                      Comorb_Cat_Neuro: hasCategory(demo.comorbidities_categories, 3) === 1 ? 'Yes' : 'No',
+                      Primary_Cat_GI: hasCategory(demo.primary_diagnosis_categories, 4) === 1 ? 'Yes' : 'No',
+                      Comorb_Cat_GI: hasCategory(demo.comorbidities_categories, 4) === 1 ? 'Yes' : 'No',
+                      Primary_Cat_Renal: hasCategory(demo.primary_diagnosis_categories, 5) === 1 ? 'Yes' : 'No',
+                      Comorb_Cat_Renal: hasCategory(demo.comorbidities_categories, 5) === 1 ? 'Yes' : 'No',
+                      Primary_Cat_Infectious: hasCategory(demo.primary_diagnosis_categories, 6) === 1 ? 'Yes' : 'No',
+                      Comorb_Cat_Infectious: hasCategory(demo.comorbidities_categories, 6) === 1 ? 'Yes' : 'No',
+                      Primary_Cat_Musculo: hasCategory(demo.primary_diagnosis_categories, 7) === 1 ? 'Yes' : 'No',
+                      Comorb_Cat_Musculo: hasCategory(demo.comorbidities_categories, 7) === 1 ? 'Yes' : 'No',
+                      Primary_Cat_Oncology: hasCategory(demo.primary_diagnosis_categories, 8) === 1 ? 'Yes' : 'No',
+                      Comorb_Cat_Oncology: hasCategory(demo.comorbidities_categories, 8) === 1 ? 'Yes' : 'No',
+                      Primary_Cat_Psych: hasCategory(demo.primary_diagnosis_categories, 9) === 1 ? 'Yes' : 'No',
+                      Comorb_Cat_Psych: hasCategory(demo.comorbidities_categories, 9) === 1 ? 'Yes' : 'No',
                       Renal_Impairment: hasRenalImpairment ? 'Yes' : 'No',
                       Hepatic_Impairment: hasHepaticImpairment ? 'Yes' : 'No',
                       Total_Number_of_Drugs: totalDrugs,
@@ -1623,6 +1576,7 @@
                       Pharmacokinetic_DDI_Count: pkCount,
                       Pharmacodynamic_DDI_Count: pdCount,
                       Drug_Disease_Interaction_Count: diseaseCount,
+                      AI_Detected_Primary_Diagnosis: demo.ai_detected_diagnosis || 'None',
                       AI_Detected_DDIs: inters.length, 
                       Clinician_Detected_DDIs: 0, 
                       Highest_DDI_Severity: highestSeverity,
@@ -1677,26 +1631,26 @@
                       Length_of_Stay_Days: demo.daysAdmitted || 0,
                       Primary_Diagnosis_Text: demo.primary_diagnosis || 'None',
                       Comorbidities_Text: demo.comorbidities || 'None',
-                      Primary_Cat_Cardio: hasCategory(demo.primary_diagnosis, 0),
-                      Comorb_Cat_Cardio: hasCategory(demo.comorbidities, 0),
-                      Primary_Cat_Endocrine: hasCategory(demo.primary_diagnosis, 1),
-                      Comorb_Cat_Endocrine: hasCategory(demo.comorbidities, 1),
-                      Primary_Cat_Respiratory: hasCategory(demo.primary_diagnosis, 2),
-                      Comorb_Cat_Respiratory: hasCategory(demo.comorbidities, 2),
-                      Primary_Cat_Neuro: hasCategory(demo.primary_diagnosis, 3),
-                      Comorb_Cat_Neuro: hasCategory(demo.comorbidities, 3),
-                      Primary_Cat_GI: hasCategory(demo.primary_diagnosis, 4),
-                      Comorb_Cat_GI: hasCategory(demo.comorbidities, 4),
-                      Primary_Cat_Renal: hasCategory(demo.primary_diagnosis, 5),
-                      Comorb_Cat_Renal: hasCategory(demo.comorbidities, 5),
-                      Primary_Cat_Infectious: hasCategory(demo.primary_diagnosis, 6),
-                      Comorb_Cat_Infectious: hasCategory(demo.comorbidities, 6),
-                      Primary_Cat_Musculo: hasCategory(demo.primary_diagnosis, 7),
-                      Comorb_Cat_Musculo: hasCategory(demo.comorbidities, 7),
-                      Primary_Cat_Oncology: hasCategory(demo.primary_diagnosis, 8),
-                      Comorb_Cat_Oncology: hasCategory(demo.comorbidities, 8),
-                      Primary_Cat_Psych: hasCategory(demo.primary_diagnosis, 9),
-                      Comorb_Cat_Psych: hasCategory(demo.comorbidities, 9),
+                      Primary_Cat_Cardio: hasCategory(demo.primary_diagnosis_categories, 0),
+                      Comorb_Cat_Cardio: hasCategory(demo.comorbidities_categories, 0),
+                      Primary_Cat_Endocrine: hasCategory(demo.primary_diagnosis_categories, 1),
+                      Comorb_Cat_Endocrine: hasCategory(demo.comorbidities_categories, 1),
+                      Primary_Cat_Respiratory: hasCategory(demo.primary_diagnosis_categories, 2),
+                      Comorb_Cat_Respiratory: hasCategory(demo.comorbidities_categories, 2),
+                      Primary_Cat_Neuro: hasCategory(demo.primary_diagnosis_categories, 3),
+                      Comorb_Cat_Neuro: hasCategory(demo.comorbidities_categories, 3),
+                      Primary_Cat_GI: hasCategory(demo.primary_diagnosis_categories, 4),
+                      Comorb_Cat_GI: hasCategory(demo.comorbidities_categories, 4),
+                      Primary_Cat_Renal: hasCategory(demo.primary_diagnosis_categories, 5),
+                      Comorb_Cat_Renal: hasCategory(demo.comorbidities_categories, 5),
+                      Primary_Cat_Infectious: hasCategory(demo.primary_diagnosis_categories, 6),
+                      Comorb_Cat_Infectious: hasCategory(demo.comorbidities_categories, 6),
+                      Primary_Cat_Musculo: hasCategory(demo.primary_diagnosis_categories, 7),
+                      Comorb_Cat_Musculo: hasCategory(demo.comorbidities_categories, 7),
+                      Primary_Cat_Oncology: hasCategory(demo.primary_diagnosis_categories, 8),
+                      Comorb_Cat_Oncology: hasCategory(demo.comorbidities_categories, 8),
+                      Primary_Cat_Psych: hasCategory(demo.primary_diagnosis_categories, 9),
+                      Comorb_Cat_Psych: hasCategory(demo.comorbidities_categories, 9),
                       Renal_Impairment: hasRenalImpairment,
                       Hepatic_Impairment: hasHepaticImpairment,
                       Total_Number_of_Drugs: totalDrugs,
@@ -1710,6 +1664,7 @@
                       Pharmacokinetic_DDI_Count: pkCount,
                       Pharmacodynamic_DDI_Count: pdCount,
                       Drug_Disease_Interaction_Count: diseaseCount,
+                      AI_Detected_Primary_Diagnosis: demo.ai_detected_diagnosis || 'None',
                       AI_Detected_DDIs: inters.length, 
                       Clinician_Detected_DDIs: 0, 
                       Highest_DDI_Severity: highestSeverity,
@@ -1874,16 +1829,6 @@
                      index={2} 
                      label="Clinical Diagnosis" 
                      subLabel="ICD-10 Mappings & Comorbidities"
-                     rightAction={
-                        <button 
-                            onClick={autoFillDiagnoses} 
-                            disabled={loadingDiagnoses} 
-                            className="px-3 py-1.5 bg-indigo-50 border border-indigo-200 text-indigo-700 hover:bg-indigo-100 rounded text-xs font-bold transition-colors flex items-center gap-1"
-                        >
-                            {loadingDiagnoses ? <div className="w-3 h-3 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div> : <Sparkles className="w-3 h-3"/>}
-                            AI Auto-Detect
-                        </button>
-                     }
                   >
                     <div className="space-y-4">
                         <div>
@@ -2499,6 +2444,11 @@
                                                  <td className="p-4 text-slate-600">
                                                      <div className="font-bold truncate max-w-[200px]" title={rec.demographics?.primary_diagnosis}>{rec.demographics?.primary_diagnosis || 'N/A'}</div>
                                                      <div className="text-xs truncate max-w-[200px]" title={rec.demographics?.comorbidities}>{rec.demographics?.comorbidities || 'None'}</div>
+                                                     {rec.demographics?.ai_detected_diagnosis && (
+                                                         <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold bg-purple-50 text-purple-700 border border-purple-200" title={`AI Suggested: ${rec.demographics.ai_detected_diagnosis}`}>
+                                                             <Sparkles className="w-2.5 h-2.5" /> AI Dx Detected
+                                                         </div>
+                                                     )}
                                                  </td>
                                                  <td className="p-4">
                                                      <div className="flex flex-col gap-1 items-start whitespace-nowrap select-none">
@@ -2594,6 +2544,7 @@
                   { variable: "Pharmacokinetic_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of PK mechanism DDIs" },
                   { variable: "Pharmacodynamic_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of PD mechanism DDIs" },
                   { variable: "Drug_Disease_Interaction_Count", measure: "Scale", type: "Numeric", coding: "Count of Drug-Disease interactions" },
+                  { variable: "AI_Detected_Primary_Diagnosis", measure: "Nominal", type: "String", coding: "Free text auto-detected by AI" },
                   { variable: "AI_Detected_DDIs", measure: "Scale", type: "Numeric", coding: "Total AI detected DDIs (Same as Total_DDIs)" },
                   { variable: "Clinician_Detected_DDIs", measure: "Scale", type: "Numeric", coding: "Placeholder (Default = 0)" },
                   { variable: "Highest_DDI_Severity", measure: "Ordinal", type: "String", coding: "Text: 'Major' > 'Moderate' > 'Minor' > 'Monitoring' > 'None'" },
