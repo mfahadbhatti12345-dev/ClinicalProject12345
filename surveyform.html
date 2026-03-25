@@ -1334,13 +1334,8 @@
                       setDrugs(record.medications || []);
                       setInteractions(record.interactions || []);
                       
-                      if (record.interactions && record.interactions.length > 0) {
-                          setActiveTab('analysis');
-                          setNotification({ type: 'success', message: `Loaded: Analysis Data Restored` });
-                      } else {
-                          setActiveTab('intake');
-                          setNotification({ type: 'info', message: `Loaded: Ready for Intake` });
-                      }
+                      setActiveTab('intake');
+                      setNotification({ type: 'success', message: `Loaded: Patient Record ready for editing` });
                       setConfirmModal({ isOpen: false });
                   }
               });
@@ -1567,6 +1562,7 @@
                   const disp = rec.disposition || {};
 
                   // Helpers for calculations
+                  const numDiagnosis = demo.primary_diagnosis ? demo.primary_diagnosis.split(',').filter(d => d.trim() !== '').length : 0;
                   const scr = parseFloat(demo.serum_creatinine);
                   const tbil = parseFloat(demo.bilirubin);
                   const hasRenalImpairment = (demo.crcl && parseInt(demo.crcl) < 60) || (demo.rft_enabled && !isNaN(scr) && scr > 1.2) ? 1 : 0;
@@ -1600,6 +1596,8 @@
                       Length_of_Stay_Days: demo.daysAdmitted || 0,
                       Primary_Diagnosis_Text: demo.primary_diagnosis || 'None',
                       Comorbidities_Text: demo.comorbidities || 'None',
+                      Number_of_Primary_Diagnoses: numDiagnosis,
+                      Number_of_Comorbidities: numComorbidities,
                       Primary_Cat_Cardio: hasCategory(demo.primary_diagnosis_categories, 0) === 1 ? 'Yes' : 'No',
                       Comorb_Cat_Cardio: hasCategory(demo.comorbidities_categories, 0) === 1 ? 'Yes' : 'No',
                       Primary_Cat_Endocrine: hasCategory(demo.primary_diagnosis_categories, 1) === 1 ? 'Yes' : 'No',
@@ -1656,6 +1654,7 @@
                   const inters = rec.interactions || [];
                   const disp = rec.disposition || {};
 
+                  const numDiagnosis = demo.primary_diagnosis ? demo.primary_diagnosis.split(',').filter(d => d.trim() !== '').length : 0;
                   const scr = parseFloat(demo.serum_creatinine);
                   const tbil = parseFloat(demo.bilirubin);
                   const hasRenalImpairment = (demo.crcl && parseInt(demo.crcl) < 60) || (demo.rft_enabled && !isNaN(scr) && scr > 1.2) ? 1 : 0;
@@ -1689,6 +1688,8 @@
                       Length_of_Stay_Days: demo.daysAdmitted || 0,
                       Primary_Diagnosis_Text: demo.primary_diagnosis || 'None',
                       Comorbidities_Text: demo.comorbidities || 'None',
+                      Number_of_Primary_Diagnoses: numDiagnosis,
+                      Number_of_Comorbidities: numComorbidities,
                       Primary_Cat_Cardio: hasCategory(demo.primary_diagnosis_categories, 0),
                       Comorb_Cat_Cardio: hasCategory(demo.comorbidities_categories, 0),
                       Primary_Cat_Endocrine: hasCategory(demo.primary_diagnosis_categories, 1),
@@ -2582,6 +2583,8 @@
                   { variable: "Length_of_Stay_Days", measure: "Scale", type: "Numeric", coding: "Continuous integer (Days)" },
                   { variable: "Primary_Diagnosis_Text", measure: "Nominal", type: "String", coding: "Free text diagnosis" },
                   { variable: "Comorbidities_Text", measure: "Nominal", type: "String", coding: "Free text comorbidities" },
+                  { variable: "Number_of_Primary_Diagnoses", measure: "Scale", type: "Numeric", coding: "Count of listed primary diagnoses (0, 1, 2...)" },
+                  { variable: "Number_of_Comorbidities", measure: "Scale", type: "Numeric", coding: "Count of listed comorbidities (0, 1, 2...)" },
                   { variable: "Primary_Cat_Cardio", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
                   { variable: "Comorb_Cat_Cardio", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
                   { variable: "Primary_Cat_Endocrine", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
