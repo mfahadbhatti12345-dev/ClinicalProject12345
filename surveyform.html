@@ -698,6 +698,20 @@
           const [visibleColumns, setVisibleColumns] = useState({});
           const [showColSettings, setShowColSettings] = useState(false);
 
+          // State for Records Filter
+          const [recordFilter, setRecordFilter] = useState('all');
+          
+          // State for cute loading animations
+          const [loadingMessage, setLoadingMessage] = useState({ text: 'Analyzing...', emoji: '🤖' });
+          const LOADING_ANIMATIONS = [
+              { text: "AI is crunching the clinical data...", emoji: "🤖 🧠" },
+              { text: "Investigating potential interactions...", emoji: "🕵️‍♀️ 💊" },
+              { text: "Consulting medical guidelines...", emoji: "📚 🩺" },
+              { text: "Synthesizing pharmacotherapy pathways...", emoji: "🚀 ✨" },
+              { text: "Cross-referencing metabolic pathways...", emoji: "🧬 🔬" },
+              { text: "Scanning for hidden contraindications...", emoji: "🔍 🚫" }
+          ];
+
           // Initialize Gemini API Key from Supabase system_settings table
           useEffect(() => {
               const fetchCloudApiKey = async () => {
@@ -1444,6 +1458,8 @@
           };
 
           const runClinicalAnalysis = async () => {
+            const randomMsg = LOADING_ANIMATIONS[Math.floor(Math.random() * LOADING_ANIMATIONS.length)];
+            setLoadingMessage(randomMsg);
             setLoading(true);
             try {
               const aiResult = await fetchAIInteractions(patient, drugs);
@@ -1474,6 +1490,8 @@
                   message: `Run AI analysis for patient ${record.patientId}? This will load the record into your active session.`,
                   onConfirm: async () => {
                       setConfirmModal({ isOpen: false });
+                      const randomMsg = LOADING_ANIMATIONS[Math.floor(Math.random() * LOADING_ANIMATIONS.length)];
+                      setLoadingMessage(randomMsg);
                       setLoading(true);
                       try {
                           const pat = { ...getInitialPatientState(), ...(record.demographics || {}) };
@@ -2435,6 +2453,18 @@
                   }
               };
 
+              // Apply the dropdown filter
+              const filteredRecords = savedRecords.filter(rec => {
+                  if (recordFilter === 'pending_analysis') {
+                      return !rec.interactions || rec.interactions.length === 0;
+                  }
+                  if (recordFilter === 'missing_categories') {
+                      const hasCategories = rec.demographics?.primary_diagnosis_categories?.length > 0 || rec.demographics?.comorbidities_categories?.length > 0;
+                      return !hasCategories;
+                  }
+                  return true;
+              });
+
               return (
                   <div className="max-w-6xl mx-auto transition-all duration-300">
                      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3 select-none">
@@ -2442,9 +2472,18 @@
                             <h2 className="text-2xl font-bold text-slate-900">Patient Records</h2>
                             <p className="text-slate-500 text-sm">Stored locally {supabaseClient ? '& Synced to Cloud' : '(Local Only - Add API Keys for Cloud)'}.</p>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
+                            <select 
+                                value={recordFilter} 
+                                onChange={(e) => setRecordFilter(e.target.value)}
+                                className="text-sm border border-slate-300 px-3 py-1.5 rounded-lg bg-white text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 font-medium transition-colors shadow-sm"
+                            >
+                                <option value="all">📁 All Records</option>
+                                <option value="pending_analysis">⏳ Analysis Pending</option>
+                                <option value="missing_categories">⚠️ Missing Categories</option>
+                            </select>
                             <div className="text-sm bg-white border px-3 py-1.5 rounded text-center sm:text-left">
-                                Total: <span className="font-bold">{savedRecords.length}</span>
+                                Showing: <span className="font-bold">{filteredRecords.length}</span>
                             </div>
                             <button 
                                 onClick={() => openPrintModal(selectedRecordIds)} 
@@ -2456,11 +2495,11 @@
                         </div>
                      </div>
 
-                     {savedRecords.length === 0 ? (
+                     {filteredRecords.length === 0 ? (
                           <div className="text-center p-12 bg-white rounded-lg border border-dashed select-none">
                             <Folder className="w-12 h-12 text-slate-300 mx-auto mb-4"/>
-                            <p className="text-slate-500">No records saved yet.</p>
-                            <button onClick={() => setActiveTab('intake')} className="text-indigo-600 font-bold mt-2">Create New Entry</button>
+                            <p className="text-slate-500">No records match the current filter.</p>
+                            {recordFilter === 'all' && <button onClick={() => setActiveTab('intake')} className="text-indigo-600 font-bold mt-2">Create New Entry</button>}
                           </div>
                      ) : (
                           <div className="bg-white rounded-lg shadow overflow-hidden border">
@@ -2471,7 +2510,7 @@
                                              <th className="p-4 w-12 text-center">
                                                  <input 
                                                     type="checkbox" 
-                                                    checked={selectedRecordIds.length === savedRecords.length && savedRecords.length > 0} 
+                                                    checked={selectedRecordIds.length === filteredRecords.length && filteredRecords.length > 0} 
                                                     onChange={toggleSelectAll} 
                                                     className="rounded text-indigo-600 cursor-pointer"
                                                  />
@@ -2486,7 +2525,7 @@
                                          </tr>
                                      </thead>
                                      <tbody className="divide-y select-text">
-                                         {savedRecords.map((rec, i) => {
+                                         {filteredRecords.map((rec, i) => {
                                              const hasCategories = rec.demographics?.primary_diagnosis_categories?.length > 0 || rec.demographics?.comorbidities_categories?.length > 0;
                                              return (
                                              <tr key={rec.patientId} className={`hover:bg-slate-50 transition-colors ${selectedRecordIds.includes(rec.patientId) ? 'bg-indigo-50/50' : ''}`}>
@@ -2958,6 +2997,19 @@
                   {activeTab === 'records' && renderRecords()}
                   {activeTab === 'export' && renderDataExport()}
                   
+                  {/* Cute AI Loading Overlay */}
+                  {loading && (
+                      <div className="fixed inset-0 bg-slate-900/80 z-[100] flex flex-col items-center justify-center animate-fadeIn print:hidden backdrop-blur-sm">
+                          <div className="text-7xl animate-bounce mb-6">{loadingMessage.emoji}</div>
+                          <h2 className="text-2xl font-extrabold text-white mb-2 text-center px-4">{loadingMessage.text}</h2>
+                          <div className="mt-4 flex gap-2">
+                             <div className="w-4 h-4 bg-indigo-500 rounded-full animate-ping"></div>
+                             <div className="w-4 h-4 bg-indigo-400 rounded-full animate-ping" style={{animationDelay: '0.2s'}}></div>
+                             <div className="w-4 h-4 bg-indigo-300 rounded-full animate-ping" style={{animationDelay: '0.4s'}}></div>
+                          </div>
+                      </div>
+                  )}
+
                   {/* Global Notification Toast */}
                   {notification && <Toast message={notification.message} type={notification.type} />}
                 </div>
