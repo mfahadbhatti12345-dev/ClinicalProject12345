@@ -679,6 +679,9 @@
             primary_diagnosis_categories: [],
             comorbidities_categories: [],
             ai_detected_diagnosis: '',
+            ai_dosage_change: false,
+            ai_alternative_therapy: false,
+            ai_therapy_stoppage: false,
             intervention: 'Monitoring Only',
             outcome: 'Stable',
             daysAdmitted: 3,
@@ -1455,11 +1458,19 @@
               2. Provide output in extremely concise, line-by-line format. DO NOT write long paragraphs or comprehensive explanations.
               3. Identify exactly WHICH DAYS in the schedule the interaction is active.
               4. Based on the patient's demographics, medications, and listed conditions (including symptoms, presenting complaints (PC), and comorbidities), independently deduce the single most likely underlying primary clinical diagnosis. Provide this as a concise string.
+              5. Based on all detected interactions, determine if the overall clinical recommendation requires: 
+                 - A dosage change (dosage_change_recommended)
+                 - An alternative medication (alternative_medication_recommended)
+                 - Stoppage of therapy (therapy_stoppage_recommended)
+                 Provide true/false for each.
 
               OUTPUT FORMAT: JSON ONLY.
               Structure:
               {
                 "detected_primary_diagnosis": "Short Name of Diagnosis",
+                "dosage_change_recommended": false,
+                "alternative_medication_recommended": false,
+                "therapy_stoppage_recommended": false,
                 "interactions": [
                   {
                     "pair": "Drug A + Drug B",
@@ -1494,7 +1505,10 @@
             
             return {
                 interactions: result.interactions || [],
-                detected_primary_diagnosis: result.detected_primary_diagnosis || ''
+                detected_primary_diagnosis: result.detected_primary_diagnosis || '',
+                dosage_change_recommended: !!result.dosage_change_recommended,
+                alternative_medication_recommended: !!result.alternative_medication_recommended,
+                therapy_stoppage_recommended: !!result.therapy_stoppage_recommended
             };
           };
 
@@ -1511,7 +1525,13 @@
               const severityOrder = { "Major": 1, "Moderate": 2, "Minor": 3, "Monitoring": 4 };
               interactionsResult.sort((a, b) => (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5));
 
-              setPatient(prev => ({ ...prev, ai_detected_diagnosis: aiDx }));
+              setPatient(prev => ({ 
+                  ...prev, 
+                  ai_detected_diagnosis: aiDx,
+                  ai_dosage_change: aiResult.dosage_change_recommended || false,
+                  ai_alternative_therapy: aiResult.alternative_medication_recommended || false,
+                  ai_therapy_stoppage: aiResult.therapy_stoppage_recommended || false
+              }));
               setInteractions(interactionsResult);
               setActiveTab('analysis');
               setNotification({ type: 'success', message: 'Analysis Complete' });
@@ -1546,6 +1566,9 @@
                           interactionsResult.sort((a, b) => (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5));
 
                           pat.ai_detected_diagnosis = aiDx;
+                          pat.ai_dosage_change = aiResult.dosage_change_recommended || false;
+                          pat.ai_alternative_therapy = aiResult.alternative_medication_recommended || false;
+                          pat.ai_therapy_stoppage = aiResult.therapy_stoppage_recommended || false;
 
                           setPatient(pat);
                           setDrugs(drg);
@@ -1604,6 +1627,9 @@
                               interactionsResult.sort((a, b) => (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5));
 
                               pat.ai_detected_diagnosis = aiDx;
+                              pat.ai_dosage_change = aiResult.dosage_change_recommended || false;
+                              pat.ai_alternative_therapy = aiResult.alternative_medication_recommended || false;
+                              pat.ai_therapy_stoppage = aiResult.therapy_stoppage_recommended || false;
                               
                               const payload = {
                                   ...currentRecord,
@@ -1712,6 +1738,29 @@
                   const inters = rec.interactions || [];
                   const disp = rec.disposition || {};
 
+                  // --- Count AI Recommendations from Interactions ---
+                  let doseChangeCount = 0;
+                  let altTherapyCount = 0;
+                  let stopTherapyCount = 0;
+
+                  if (inters.length > 0) {
+                      inters.forEach(i => {
+                          const comboText = `${i.recommendation || ''} ${i.dose_adjustment || ''} ${i.clinical_significance || ''}`.toLowerCase();
+                          let counted = false;
+                          if (comboText.includes('stop') || comboText.includes('discontinue') || comboText.includes('avoid') || comboText.includes('contraindicated')) {
+                              stopTherapyCount++;
+                              counted = true;
+                          }
+                          if (!counted && (comboText.includes('alternative') || comboText.includes('switch') || comboText.includes('substitute'))) {
+                              altTherapyCount++;
+                              counted = true;
+                          }
+                          if (!counted && (comboText.includes('dose') || comboText.includes('adjust') || comboText.includes('decrease') || comboText.includes('increase') || comboText.includes('reduce'))) {
+                              doseChangeCount++;
+                          }
+                      });
+                  }
+
                   // Helpers for calculations
                   const numDiagnosis = demo.primary_diagnosis ? demo.primary_diagnosis.split(',').filter(d => d.trim() !== '').length : 0;
                   const scr = parseFloat(demo.serum_creatinine);
@@ -1786,6 +1835,12 @@
                       AI_Detected_DDIs: inters.length, 
                       Clinician_Detected_DDIs: 0, 
                       Highest_DDI_Severity: highestSeverity,
+                      AI_Dosage_Change_Count: doseChangeCount,
+                      AI_Alternative_Therapy_Count: altTherapyCount,
+                      AI_Therapy_Stoppage_Count: stopTherapyCount,
+                      Clinician_Dosage_Changed: disp.intervention === 'Dose Reduced' ? 'Yes' : 'No',
+                      Clinician_Alternative_Therapy: disp.intervention === 'Alternative Therapy Prescribed' ? 'Yes' : 'No',
+                      Clinician_Therapy_Stopped: disp.intervention === 'Drug Discontinued' ? 'Yes' : 'No',
                       Intervention_Required: interventionRequired ? 'Yes' : 'No',
                       Adverse_Drug_Event: 0, 
                       ICU_Transfer: icuTransfer ? 'Yes' : 'No',
@@ -1804,6 +1859,29 @@
                   const meds = rec.medications || [];
                   const inters = rec.interactions || [];
                   const disp = rec.disposition || {};
+
+                  // --- Count AI Recommendations from Interactions ---
+                  let doseChangeCount = 0;
+                  let altTherapyCount = 0;
+                  let stopTherapyCount = 0;
+
+                  if (inters.length > 0) {
+                      inters.forEach(i => {
+                          const comboText = `${i.recommendation || ''} ${i.dose_adjustment || ''} ${i.clinical_significance || ''}`.toLowerCase();
+                          let counted = false;
+                          if (comboText.includes('stop') || comboText.includes('discontinue') || comboText.includes('avoid') || comboText.includes('contraindicated')) {
+                              stopTherapyCount++;
+                              counted = true;
+                          }
+                          if (!counted && (comboText.includes('alternative') || comboText.includes('switch') || comboText.includes('substitute'))) {
+                              altTherapyCount++;
+                              counted = true;
+                          }
+                          if (!counted && (comboText.includes('dose') || comboText.includes('adjust') || comboText.includes('decrease') || comboText.includes('increase') || comboText.includes('reduce'))) {
+                              doseChangeCount++;
+                          }
+                      });
+                  }
 
                   const numDiagnosis = demo.primary_diagnosis ? demo.primary_diagnosis.split(',').filter(d => d.trim() !== '').length : 0;
                   const scr = parseFloat(demo.serum_creatinine);
@@ -1878,6 +1956,12 @@
                       AI_Detected_DDIs: inters.length, 
                       Clinician_Detected_DDIs: 0, 
                       Highest_DDI_Severity: highestSeverity,
+                      AI_Dosage_Change_Count: doseChangeCount,
+                      AI_Alternative_Therapy_Count: altTherapyCount,
+                      AI_Therapy_Stoppage_Count: stopTherapyCount,
+                      Clinician_Dosage_Changed: disp.intervention === 'Dose Reduced' ? 1 : 0,
+                      Clinician_Alternative_Therapy: disp.intervention === 'Alternative Therapy Prescribed' ? 1 : 0,
+                      Clinician_Therapy_Stopped: disp.intervention === 'Drug Discontinued' ? 1 : 0,
                       Intervention_Required: interventionRequired,
                       Adverse_Drug_Event: 0, 
                       ICU_Transfer: icuTransfer,
@@ -1887,12 +1971,27 @@
               });
           };
 
-          // Ensure columns toggle object exists
+          // Ensure columns toggle object exists with preferred defaults
           useEffect(() => {
+              // Only these specific columns will be UNCHECKED by default, exactly matching your screenshot
+              const defaultUnchecked = [
+                  "Ward_Type", 
+                  "Clinician_Dosage_Changed", 
+                  "Clinician_Alternative_Therapy", 
+                  "Clinician_Therapy_Stopped",
+                  "Intervention_Required", 
+                  "Adverse_Drug_Event", 
+                  "ICU_Transfer", 
+                  "Mortality", 
+                  "Final_Outcome"
+              ];
+
               const dummyData = exportType === 'spss' ? generateSpssData() : generateNormalData();
               if (dummyData.length > 0 && Object.keys(visibleColumns).length === 0) {
                   const initial = {};
-                  Object.keys(dummyData[0]).forEach(key => initial[key] = true);
+                  Object.keys(dummyData[0]).forEach(key => {
+                      initial[key] = !defaultUnchecked.includes(key);
+                  });
                   setVisibleColumns(initial);
               }
           }, [savedRecords, exportType]);
@@ -2839,6 +2938,12 @@
                   { variable: "AI_Detected_DDIs", measure: "Scale", type: "Numeric", coding: "Total AI detected DDIs (Same as Total_DDIs)" },
                   { variable: "Clinician_Detected_DDIs", measure: "Scale", type: "Numeric", coding: "Placeholder (Default = 0)" },
                   { variable: "Highest_DDI_Severity", measure: "Ordinal", type: "String", coding: "Text: 'Major' > 'Moderate' > 'Minor' > 'Monitoring' > 'None'" },
+                  { variable: "AI_Dosage_Change_Count", measure: "Scale", type: "Numeric", coding: "Count of interactions requiring dose adjustment" },
+                  { variable: "AI_Alternative_Therapy_Count", measure: "Scale", type: "Numeric", coding: "Count of interactions requiring alternative therapy" },
+                  { variable: "AI_Therapy_Stoppage_Count", measure: "Scale", type: "Numeric", coding: "Count of interactions requiring therapy stoppage" },
+                  { variable: "Clinician_Dosage_Changed", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (Authentic: Dose Reduced)" },
+                  { variable: "Clinician_Alternative_Therapy", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (Authentic: Alt Therapy Prescribed)" },
+                  { variable: "Clinician_Therapy_Stopped", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (Authentic: Drug Discontinued)" },
                   { variable: "Intervention_Required", measure: "Nominal", type: "Numeric", coding: "0 = No (Monitoring Only), 1 = Yes (Dose Reduced, Discontinued, etc.)" },
                   { variable: "Adverse_Drug_Event", measure: "Nominal", type: "Numeric", coding: "Placeholder (Default = 0)" },
                   { variable: "ICU_Transfer", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (Ward is ICU)" },
