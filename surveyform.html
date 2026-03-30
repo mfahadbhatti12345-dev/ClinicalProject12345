@@ -629,6 +629,7 @@
           const [activeTab, setActiveTab] = useState('intake');
           const [dashTab, setDashTab] = useState('analytics'); // Sub-tab for Dashboard
           const [loading, setLoading] = useState(false);
+          const [loadingDiagnoses, setLoadingDiagnoses] = useState(false);
           const [notification, setNotification] = useState(null);
           const [geminiKey, setGeminiKey] = useState(''); 
           const [showSettings, setShowSettings] = useState(false);
@@ -643,14 +644,16 @@
           const [deleteModalState, setDeleteModalState] = useState({ isOpen: false, drugData: null, fetchedForms: [], selectedFormId: null, isLoading: false });
 
           // State for Diagnosis Multi-Select Modal
-          const [diagnosisModal, setDiagnosisModal] = useState({ isOpen: false, targetField: null });
+          const [diagnosisModal, setDiagnosisModal] = useState({ isOpen: false, targetField: null, isQuickEdit: false });
+          const [quickEditRecord, setQuickEditRecord] = useState(null);
 
           // State for Drug Dropdown Search
           const [activeDropdown, setActiveDropdown] = useState(null); // { id, field }
           const [drugSuggestions, setDrugSuggestions] = useState([]);
           
-          // State for Patient Records printing
+          // State for Patient Records printing & batching
           const [selectedRecordIds, setSelectedRecordIds] = useState([]);
+          const [processingRecordId, setProcessingRecordId] = useState(null);
           
           // AI Chat State
           const [chatHistory, setChatHistory] = useState([]);
@@ -700,6 +703,7 @@
 
           // State for Records Filter
           const [recordFilter, setRecordFilter] = useState('all');
+          const [recordSearchQuery, setRecordSearchQuery] = useState('');
           
           // State for cute loading animations
           const [loadingMessage, setLoadingMessage] = useState({ text: 'Analyzing...', emoji: '🤖' });
@@ -829,24 +833,37 @@
           };
 
           // --- Diagnosis Toggle Logic ---
-          const toggleDiagnosis = (item, field) => {
+          const toggleDiagnosis = (item, field, isQuickEdit = false) => {
               const catField = field + '_categories';
-              let currentItems = patient[catField] || [];
               
-              if (currentItems.includes(item)) {
-                  // Remove item
-                  currentItems = currentItems.filter(i => i !== item);
+              if (isQuickEdit && quickEditRecord) {
+                  let currentItems = quickEditRecord.demographics[catField] || [];
+                  if (currentItems.includes(item)) {
+                      currentItems = currentItems.filter(i => i !== item);
+                  } else {
+                      currentItems = [...currentItems, item];
+                  }
+                  setQuickEditRecord({
+                      ...quickEditRecord,
+                      demographics: { ...quickEditRecord.demographics, [catField]: currentItems }
+                  });
               } else {
-                  // Add item
-                  currentItems = [...currentItems, item];
+                  let currentItems = patient[catField] || [];
+                  if (currentItems.includes(item)) {
+                      currentItems = currentItems.filter(i => i !== item);
+                  } else {
+                      currentItems = [...currentItems, item];
+                  }
+                  setPatient({ ...patient, [catField]: currentItems });
               }
-              setPatient({ ...patient, [catField]: currentItems });
           };
 
-          const isDiagnosisSelected = (item, field) => {
+          const isDiagnosisSelected = (item, field, isQuickEdit = false) => {
               const catField = field + '_categories';
-              const currentItems = patient[catField] || [];
-              return currentItems.includes(item);
+              if (isQuickEdit && quickEditRecord) {
+                  return (quickEditRecord.demographics[catField] || []).includes(item);
+              }
+              return (patient[catField] || []).includes(item);
           };
 
           const addDrug = () => {
@@ -1240,6 +1257,30 @@
             });
           };
 
+          const saveQuickEditRecord = async () => {
+              if (!quickEditRecord) return;
+              setLoading(true);
+              try {
+                  const updatedRecords = savedRecords.map(r => r.patientId === quickEditRecord.patientId ? quickEditRecord : r);
+                  setSavedRecords(updatedRecords);
+                  localStorage.setItem('cliniq_records', JSON.stringify(updatedRecords));
+
+                  if (supabaseClient) {
+                      await supabaseClient
+                          .from('clinical_records')
+                          .update({ demographics: quickEditRecord.demographics })
+                          .eq('patient_id', quickEditRecord.patientId);
+                  }
+
+                  setNotification({ type: 'success', message: 'Categories updated successfully.' });
+                  setQuickEditRecord(null);
+              } catch (err) {
+                  setNotification({ type: 'error', message: `Failed to update: ${err.message}` });
+              } finally {
+                  setLoading(false);
+              }
+          };
+
           const saveToServer = async () => {
               try {
                 setLoading(true);
@@ -1516,6 +1557,98 @@
                           setNotification({ type: 'error', message: `AI Analysis Failed: ${error.message}` });
                       } finally {
                           setLoading(false);
+                      }
+                  }
+              });
+          };
+
+          // --- Batch AI Analysis Function ---
+          const runBatchAnalysis = async () => {
+              if (selectedRecordIds.length === 0) return;
+              
+              setConfirmModal({
+                  isOpen: true,
+                  title: "Run Batch Analysis?",
+                  message: `Are you sure you want to run AI clinical analysis on ${selectedRecordIds.length} selected records? They will be processed one by one and automatically saved to the database.`,
+                  onConfirm: async () => {
+                      setConfirmModal({ isOpen: false });
+                      let successCount = 0;
+                      let failCount = 0;
+                      
+                      for (const id of selectedRecordIds) {
+                          setProcessingRecordId(id);
+                          
+                          try {
+                              // Fetch fresh record from state for this iteration
+                              let currentRecord = null;
+                              setSavedRecords(prev => {
+                                  currentRecord = prev.find(r => r.patientId === id);
+                                  return prev;
+                              });
+                              
+                              if (!currentRecord) continue;
+
+                              const pat = { ...getInitialPatientState(), ...(currentRecord.demographics || {}) };
+                              const drg = currentRecord.medications || [];
+                              
+                              // Skip if no medications to analyze
+                              if (drg.length === 0 || (drg.length === 1 && !drg[0].name)) {
+                                  continue;
+                              }
+
+                              const aiResult = await fetchAIInteractions(pat, drg);
+                              const interactionsResult = aiResult.interactions || [];
+                              const aiDx = aiResult.detected_primary_diagnosis || '';
+                              
+                              const severityOrder = { "Major": 1, "Moderate": 2, "Minor": 3, "Monitoring": 4 };
+                              interactionsResult.sort((a, b) => (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5));
+
+                              pat.ai_detected_diagnosis = aiDx;
+                              
+                              const payload = {
+                                  ...currentRecord,
+                                  demographics: pat,
+                                  interactions: interactionsResult,
+                                  timestamp: new Date().toISOString()
+                              };
+                              
+                              // Save to Cloud if available
+                              if (supabaseClient) {
+                                  await supabaseClient
+                                      .from('clinical_records')
+                                      .upsert({ 
+                                          patient_id: pat.id,
+                                          demographics: pat,
+                                          medications: drg,
+                                          interactions: interactionsResult,
+                                          disposition: payload.disposition,
+                                          created_at: payload.timestamp
+                                      }, { onConflict: 'patient_id' });
+                              }
+                              
+                              // Save locally and update UI live
+                              setSavedRecords(prev => {
+                                  const newRecs = [...prev];
+                                  const idx = newRecs.findIndex(r => r.patientId === id);
+                                  if (idx !== -1) newRecs[idx] = payload;
+                                  localStorage.setItem('cliniq_records', JSON.stringify(newRecs));
+                                  return newRecs;
+                              });
+                              
+                              successCount++;
+                          } catch (error) {
+                              console.error(`Error processing record ${id}:`, error);
+                              failCount++;
+                          }
+                      }
+                      
+                      setProcessingRecordId(null);
+                      setSelectedRecordIds([]);
+                      
+                      if (failCount === 0) {
+                          setNotification({ type: 'success', message: `Batch analysis completed successfully for ${successCount} records.` });
+                      } else {
+                          setNotification({ type: 'info', message: `Batch finished: ${successCount} succeeded, ${failCount} failed. (Check API limits).` });
                       }
                   }
               });
@@ -2446,49 +2579,81 @@
               };
 
               const toggleSelectAll = () => {
-                  if (selectedRecordIds.length === savedRecords.length) {
+                  if (selectedRecordIds.length === filteredRecords.length) {
                       setSelectedRecordIds([]);
                   } else {
-                      setSelectedRecordIds(savedRecords.map(r => r.patientId));
+                      setSelectedRecordIds(filteredRecords.map(r => r.patientId));
                   }
               };
 
-              // Apply the dropdown filter
+              // Apply the dropdown filter and search query
               const filteredRecords = savedRecords.filter(rec => {
+                  // Apply dropdown filter
                   if (recordFilter === 'pending_analysis') {
-                      return !rec.interactions || rec.interactions.length === 0;
+                      if (rec.interactions && rec.interactions.length > 0) return false;
                   }
                   if (recordFilter === 'missing_categories') {
                       const hasCategories = rec.demographics?.primary_diagnosis_categories?.length > 0 || rec.demographics?.comorbidities_categories?.length > 0;
-                      return !hasCategories;
+                      if (hasCategories) return false;
                   }
+                  
+                  // Apply text search filter
+                  if (recordSearchQuery.trim() !== '') {
+                      const query = recordSearchQuery.toLowerCase();
+                      const patientIdMatch = (rec.patientId || '').toLowerCase().includes(query);
+                      const diagMatch = (rec.demographics?.primary_diagnosis || '').toLowerCase().includes(query);
+                      const comorbMatch = (rec.demographics?.comorbidities || '').toLowerCase().includes(query);
+                      
+                      if (!patientIdMatch && !diagMatch && !comorbMatch) return false;
+                  }
+                  
                   return true;
               });
 
               return (
                   <div className="max-w-6xl mx-auto transition-all duration-300">
-                     <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-3 select-none">
+                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3 select-none">
                         <div>
                             <h2 className="text-2xl font-bold text-slate-900">Patient Records</h2>
                             <p className="text-slate-500 text-sm">Stored locally {supabaseClient ? '& Synced to Cloud' : '(Local Only - Add API Keys for Cloud)'}.</p>
                         </div>
-                        <div className="flex flex-wrap items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+                            <div className="relative flex-grow sm:flex-grow-0">
+                                <div className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none">
+                                    <SearchIcon className="h-4 w-4 text-slate-400" />
+                                </div>
+                                <input
+                                    type="text"
+                                    value={recordSearchQuery}
+                                    onChange={(e) => setRecordSearchQuery(e.target.value)}
+                                    placeholder="Search ID or Diagnosis..."
+                                    className="text-sm border border-slate-300 pl-8 pr-3 py-1.5 rounded-lg bg-white text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 font-medium transition-colors shadow-sm w-full sm:w-48"
+                                />
+                            </div>
                             <select 
                                 value={recordFilter} 
                                 onChange={(e) => setRecordFilter(e.target.value)}
-                                className="text-sm border border-slate-300 px-3 py-1.5 rounded-lg bg-white text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 font-medium transition-colors shadow-sm"
+                                className="text-sm border border-slate-300 px-3 py-1.5 rounded-lg bg-white text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500 font-medium transition-colors shadow-sm flex-grow sm:flex-grow-0"
                             >
                                 <option value="all">📁 All Records</option>
                                 <option value="pending_analysis">⏳ Analysis Pending</option>
                                 <option value="missing_categories">⚠️ Missing Categories</option>
                             </select>
-                            <div className="text-sm bg-white border px-3 py-1.5 rounded text-center sm:text-left">
+                            <div className="text-sm bg-white border px-3 py-1.5 rounded text-center sm:text-left flex-grow sm:flex-grow-0">
                                 Showing: <span className="font-bold">{filteredRecords.length}</span>
                             </div>
                             <button 
+                                onClick={runBatchAnalysis} 
+                                disabled={selectedRecordIds.length === 0 || processingRecordId !== null}
+                                className="px-4 py-1.5 bg-indigo-600 text-white rounded text-sm font-bold hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm flex-grow sm:flex-grow-0"
+                            >
+                                {processingRecordId !== null ? <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : <BrainCircuit className="w-4 h-4"/>}
+                                Analyze Selected ({selectedRecordIds.length})
+                            </button>
+                            <button 
                                 onClick={() => openPrintModal(selectedRecordIds)} 
-                                disabled={selectedRecordIds.length === 0}
-                                className="px-4 py-1.5 bg-slate-800 text-white rounded text-sm font-bold hover:bg-slate-700 transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
+                                disabled={selectedRecordIds.length === 0 || processingRecordId !== null}
+                                className="px-4 py-1.5 bg-slate-800 text-white rounded text-sm font-bold hover:bg-slate-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2 shadow-sm flex-grow sm:flex-grow-0"
                             >
                                 <Printer className="w-4 h-4"/> Print Selected ({selectedRecordIds.length})
                             </button>
@@ -2499,7 +2664,7 @@
                           <div className="text-center p-12 bg-white rounded-lg border border-dashed select-none">
                             <Folder className="w-12 h-12 text-slate-300 mx-auto mb-4"/>
                             <p className="text-slate-500">No records match the current filter.</p>
-                            {recordFilter === 'all' && <button onClick={() => setActiveTab('intake')} className="text-indigo-600 font-bold mt-2">Create New Entry</button>}
+                            {recordFilter === 'all' && recordSearchQuery === '' && <button onClick={() => setActiveTab('intake')} className="text-indigo-600 font-bold mt-2">Create New Entry</button>}
                           </div>
                      ) : (
                           <div className="bg-white rounded-lg shadow overflow-hidden border">
@@ -2512,7 +2677,8 @@
                                                     type="checkbox" 
                                                     checked={selectedRecordIds.length === filteredRecords.length && filteredRecords.length > 0} 
                                                     onChange={toggleSelectAll} 
-                                                    className="rounded text-indigo-600 cursor-pointer"
+                                                    disabled={processingRecordId !== null}
+                                                    className="rounded text-indigo-600 cursor-pointer disabled:opacity-50"
                                                  />
                                              </th>
                                              <th className="p-4 whitespace-nowrap text-slate-400">Sr. #</th>
@@ -2527,14 +2693,16 @@
                                      <tbody className="divide-y select-text">
                                          {filteredRecords.map((rec, i) => {
                                              const hasCategories = rec.demographics?.primary_diagnosis_categories?.length > 0 || rec.demographics?.comorbidities_categories?.length > 0;
+                                             const isProcessingThis = processingRecordId === rec.patientId;
                                              return (
-                                             <tr key={rec.patientId} className={`hover:bg-slate-50 transition-colors ${selectedRecordIds.includes(rec.patientId) ? 'bg-indigo-50/50' : ''}`}>
+                                             <tr key={rec.patientId} className={`hover:bg-slate-50 transition-colors ${selectedRecordIds.includes(rec.patientId) ? 'bg-indigo-50/50' : ''} ${isProcessingThis ? 'animate-pulse bg-indigo-50' : ''}`}>
                                                  <td className="p-4 text-center">
                                                      <input 
                                                         type="checkbox" 
                                                         checked={selectedRecordIds.includes(rec.patientId)}
                                                         onChange={() => toggleSelectRecord(rec.patientId)}
-                                                        className="rounded text-indigo-600 cursor-pointer"
+                                                        disabled={processingRecordId !== null}
+                                                        className="rounded text-indigo-600 cursor-pointer disabled:opacity-50"
                                                      />
                                                  </td>
                                                  <td className="p-4 font-bold text-slate-400">{i + 1}</td>
@@ -2550,40 +2718,50 @@
                                                                  <Sparkles className="w-2.5 h-2.5" /> AI Dx Detected
                                                              </div>
                                                          )}
-                                                         {hasCategories ? (
-                                                             <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold bg-green-100 text-green-700 border border-green-300" title="Clinical Categories explicitly mapped">
-                                                                 <CheckCircle className="w-2.5 h-2.5" /> Categories Defined
-                                                             </div>
-                                                         ) : (
-                                                             <div className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold bg-orange-50 text-orange-600 border border-orange-200" title="No Clinical Categories mapped">
-                                                                 <AlertTriangle className="w-2.5 h-2.5" /> Needs Categories
-                                                             </div>
-                                                         )}
+                                                         <button 
+                                                             onClick={() => setQuickEditRecord(rec)} 
+                                                             className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold border transition-colors hover:shadow-sm cursor-pointer ${hasCategories ? 'bg-green-100 text-green-700 border-green-300 hover:bg-green-200' : 'bg-orange-50 text-orange-600 border-orange-200 hover:bg-orange-100'}`} 
+                                                             title="Click to quickly assign categories"
+                                                         >
+                                                             {hasCategories ? (
+                                                                 <><CheckCircle className="w-2.5 h-2.5" /> Cat. Defined</>
+                                                             ) : (
+                                                                 <><AlertTriangle className="w-2.5 h-2.5" /> Assign Categories</>
+                                                             )}
+                                                         </button>
                                                      </div>
                                                  </td>
                                                  <td className="p-4">
-                                                     <div className="flex flex-col gap-1 items-start whitespace-nowrap select-none">
-                                                         <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold border ${rec.interactions?.length > 0 ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
-                                                             {rec.interactions?.length > 0 ? 'Analysis Done' : 'Pending / Clear'}
-                                                         </span>
-                                                         <span className="text-xs font-semibold text-slate-600">
-                                                             {rec.interactions?.length || 0} Interaction(s)
-                                                         </span>
-                                                     </div>
+                                                     {isProcessingThis ? (
+                                                          <div className="flex flex-col gap-1 items-start whitespace-nowrap select-none">
+                                                              <span className="px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold border bg-indigo-100 text-indigo-700 border-indigo-300 flex items-center gap-1.5 shadow-sm">
+                                                                  <div className="w-3 h-3 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div> Processing...
+                                                              </span>
+                                                          </div>
+                                                     ) : (
+                                                         <div className="flex flex-col gap-1 items-start whitespace-nowrap select-none">
+                                                             <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-bold border ${rec.interactions?.length > 0 ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : 'bg-slate-50 text-slate-500 border-slate-200'}`}>
+                                                                 {rec.interactions?.length > 0 ? 'Analysis Done' : 'Pending / Clear'}
+                                                             </span>
+                                                             <span className="text-xs font-semibold text-slate-600">
+                                                                 {rec.interactions?.length || 0} Interaction(s)
+                                                             </span>
+                                                         </div>
+                                                     )}
                                                  </td>
                                                  <td className="p-4 text-right flex justify-end gap-2 whitespace-nowrap select-none">
                                                      {(!rec.interactions || rec.interactions.length === 0) && (
-                                                         <button onClick={() => analyzeRecordFromList(rec)} className="text-emerald-600 hover:text-emerald-800 p-1.5 flex items-center gap-1 font-semibold text-xs border border-emerald-200 rounded px-3 bg-emerald-50 transition-colors" title="Run Analysis">
+                                                         <button onClick={() => analyzeRecordFromList(rec)} disabled={processingRecordId !== null} className="text-emerald-600 hover:text-emerald-800 p-1.5 flex items-center gap-1 font-semibold text-xs border border-emerald-200 rounded px-3 bg-emerald-50 transition-colors disabled:opacity-50" title="Run Analysis">
                                                              <BrainCircuit className="w-3.5 h-3.5"/> Analyze
                                                          </button>
                                                      )}
-                                                     <button onClick={() => openPrintModal(rec)} className="text-slate-600 hover:text-slate-900 p-1.5 flex items-center gap-1 font-semibold text-xs border border-slate-200 rounded px-2 bg-white transition-colors" title="View & Print">
+                                                     <button onClick={() => openPrintModal(rec)} disabled={processingRecordId !== null} className="text-slate-600 hover:text-slate-900 p-1.5 flex items-center gap-1 font-semibold text-xs border border-slate-200 rounded px-2 bg-white transition-colors disabled:opacity-50" title="View & Print">
                                                          <Printer className="w-3.5 h-3.5"/> View
                                                      </button>
-                                                     <button onClick={() => loadRecordForEditing(rec)} className="text-indigo-600 hover:text-indigo-800 p-1.5 flex items-center gap-1 font-semibold text-xs border border-indigo-200 rounded px-2 bg-indigo-50 transition-colors">
+                                                     <button onClick={() => loadRecordForEditing(rec)} disabled={processingRecordId !== null} className="text-indigo-600 hover:text-indigo-800 p-1.5 flex items-center gap-1 font-semibold text-xs border border-indigo-200 rounded px-2 bg-indigo-50 transition-colors disabled:opacity-50">
                                                          <Edit className="w-3.5 h-3.5"/> Edit
                                                      </button>
-                                                     <button onClick={() => deleteRecord(rec.patientId)} className="text-red-500 hover:text-red-700 p-1.5 transition-colors" title="Delete Record">
+                                                     <button onClick={() => deleteRecord(rec.patientId)} disabled={processingRecordId !== null} className="text-red-500 hover:text-red-700 p-1.5 transition-colors disabled:opacity-50" title="Delete Record">
                                                          <Trash2 className="w-4 h-4"/>
                                                      </button>
                                                  </td>
@@ -3015,6 +3193,74 @@
                 </div>
               </div>
 
+              {/* --- QUICK EDIT CATEGORIES MODAL --- */}
+              {quickEditRecord && (
+                  <div className="fixed inset-0 bg-black/60 z-[65] flex items-center justify-center p-4 print:hidden animate-fadeIn">
+                      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full flex flex-col overflow-hidden">
+                          <div className="p-4 border-b border-slate-200 bg-slate-50 flex justify-between items-center select-none">
+                              <h3 className="font-bold text-lg text-slate-800 flex items-center gap-2">
+                                  <Folder className="w-5 h-5 text-indigo-600"/> Assign Categories
+                              </h3>
+                              <button onClick={() => setQuickEditRecord(null)} className="text-slate-500 hover:text-slate-800 transition-colors">
+                                  <X className="w-6 h-6"/>
+                              </button>
+                          </div>
+                          
+                          <div className="p-6 space-y-5">
+                              <div>
+                                  <label className="text-xs font-semibold text-slate-500 block mb-1">Primary Diagnosis</label>
+                                  <div className="flex gap-2">
+                                      <input 
+                                          type="text" 
+                                          value={quickEditRecord.demographics.primary_diagnosis || ''} 
+                                          onChange={(e) => setQuickEditRecord({...quickEditRecord, demographics: {...quickEditRecord.demographics, primary_diagnosis: e.target.value}})}
+                                          className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none text-sm" 
+                                          placeholder="e.g. Atrial Fibrillation" 
+                                      />
+                                      <button onClick={() => setDiagnosisModal({ isOpen: true, targetField: 'primary_diagnosis', isQuickEdit: true })} className="px-3 py-2 bg-slate-100 border border-slate-300 rounded hover:bg-slate-200 text-slate-700 text-sm font-semibold flex items-center gap-1 transition-colors whitespace-nowrap">
+                                          <Plus className="w-4 h-4"/> Browse
+                                      </button>
+                                  </div>
+                                  {quickEditRecord.demographics.primary_diagnosis_categories?.length > 0 && (
+                                      <div className="mt-2 text-xs text-green-600 font-medium flex gap-1 items-start">
+                                          <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                                          <span>{quickEditRecord.demographics.primary_diagnosis_categories.join(', ')}</span>
+                                      </div>
+                                  )}
+                              </div>
+                              <div>
+                                  <label className="text-xs font-semibold text-slate-500 block mb-1">Comorbidities</label>
+                                  <div className="flex gap-2">
+                                      <input 
+                                          type="text" 
+                                          value={quickEditRecord.demographics.comorbidities || ''} 
+                                          onChange={(e) => setQuickEditRecord({...quickEditRecord, demographics: {...quickEditRecord.demographics, comorbidities: e.target.value}})}
+                                          className="w-full p-2 border border-slate-300 rounded focus:ring-2 focus:ring-indigo-500 outline-none text-sm" 
+                                          placeholder="e.g. Hypertension, Diabetes Type 2" 
+                                      />
+                                      <button onClick={() => setDiagnosisModal({ isOpen: true, targetField: 'comorbidities', isQuickEdit: true })} className="px-3 py-2 bg-slate-100 border border-slate-300 rounded hover:bg-slate-200 text-slate-700 text-sm font-semibold flex items-center gap-1 transition-colors whitespace-nowrap">
+                                          <Plus className="w-4 h-4"/> Browse
+                                      </button>
+                                  </div>
+                                  {quickEditRecord.demographics.comorbidities_categories?.length > 0 && (
+                                      <div className="mt-2 text-xs text-green-600 font-medium flex gap-1 items-start">
+                                          <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                                          <span>{quickEditRecord.demographics.comorbidities_categories.join(', ')}</span>
+                                      </div>
+                                  )}
+                              </div>
+                          </div>
+                          
+                          <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 select-none">
+                              <button onClick={() => setQuickEditRecord(null)} className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg transition-colors font-medium text-sm">Cancel</button>
+                              <button onClick={saveQuickEditRecord} className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors shadow-sm flex items-center gap-2 text-sm">
+                                  <Save className="w-4 h-4"/> Save Record
+                              </button>
+                          </div>
+                      </div>
+                  </div>
+              )}
+
               {/* --- DIAGNOSIS SELECTOR MODAL --- */}
               {diagnosisModal.isOpen && (
                   <div className="fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4 print:hidden animate-fadeIn">
@@ -3023,7 +3269,7 @@
                            <h3 className="font-bold text-lg text-slate-800">
                               Browse Categories: {diagnosisModal.targetField === 'primary_diagnosis' ? 'Primary Diagnosis' : 'Comorbidities'}
                            </h3>
-                           <button onClick={() => setDiagnosisModal({ isOpen: false, targetField: null })} className="text-slate-500 hover:text-slate-800 transition-colors">
+                           <button onClick={() => setDiagnosisModal({ isOpen: false, targetField: null, isQuickEdit: false })} className="text-slate-500 hover:text-slate-800 transition-colors">
                               <X className="w-6 h-6"/>
                            </button>
                         </div>
@@ -3034,8 +3280,8 @@
                                     <label key={idx} className="flex items-center gap-3 cursor-pointer hover:bg-indigo-50 p-4 rounded-lg border border-slate-200 transition-colors group select-none">
                                         <input 
                                             type="checkbox" 
-                                            checked={isDiagnosisSelected(cat.title, diagnosisModal.targetField)}
-                                            onChange={() => toggleDiagnosis(cat.title, diagnosisModal.targetField)}
+                                            checked={isDiagnosisSelected(cat.title, diagnosisModal.targetField, diagnosisModal.isQuickEdit)}
+                                            onChange={() => toggleDiagnosis(cat.title, diagnosisModal.targetField, diagnosisModal.isQuickEdit)}
                                             className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 w-5 h-5 cursor-pointer"
                                         />
                                         <span className="text-sm font-bold text-slate-800 group-hover:text-indigo-700 transition-colors">{cat.title}</span>
@@ -3046,7 +3292,7 @@
                         
                         <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3 select-none">
                            <button 
-                               onClick={() => setDiagnosisModal({ isOpen: false, targetField: null })} 
+                               onClick={() => setDiagnosisModal({ isOpen: false, targetField: null, isQuickEdit: false })} 
                                className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition-colors shadow-sm"
                            >
                               Done
