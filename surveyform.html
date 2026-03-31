@@ -630,6 +630,7 @@
           const [dashTab, setDashTab] = useState('analytics'); // Sub-tab for Dashboard
           const [loading, setLoading] = useState(false);
           const [loadingDiagnoses, setLoadingDiagnoses] = useState(false);
+          const [aiCategoryLoading, setAiCategoryLoading] = useState(false);
           const [notification, setNotification] = useState(null);
           const [geminiKey, setGeminiKey] = useState(''); 
           const [showSettings, setShowSettings] = useState(false);
@@ -683,6 +684,7 @@
             comorbidities: '',       
             primary_diagnosis_categories: [],
             comorbidities_categories: [],
+            ai_category_assigned: false,
             ai_detected_diagnosis: '',
             ai_dosage_change: false,
             ai_alternative_therapy: false,
@@ -862,7 +864,11 @@
                   } else {
                       currentItems = [...currentItems, item];
                   }
-                  setPatient({ ...patient, [catField]: currentItems });
+                  
+                  // Reset AI badge if they manually modify the primary diagnosis categories
+                  const isAiAssigned = field === 'primary_diagnosis' ? false : patient.ai_category_assigned;
+
+                  setPatient({ ...patient, [catField]: currentItems, ai_category_assigned: isAiAssigned });
               }
           };
 
@@ -1247,6 +1253,72 @@
                 setLookupLoading(prev => ({ ...prev, [id]: false }));
             }
           };
+          
+          const autoAssignCategory = async () => {
+              setAiCategoryLoading(true);
+              const context = `
+                Act as a clinical classifier. Based on the following patient data, assign EXACTLY ONE appropriate category for their Primary Diagnosis.
+                
+                Patient Data:
+                - Age: ${patient.age}
+                - Gender: ${patient.gender}
+                - Weight: ${patient.weight}
+                - Ward: ${patient.ward}
+                - Primary Diagnosis Text: ${patient.primary_diagnosis || 'None provided'}
+                - Comorbidities: ${patient.comorbidities || 'None provided'}
+                - Medications: ${drugs.map(d=>d.name || d.brand).join(', ') || 'None provided'}
+
+                Categories (Choose exactly one from this list):
+                "1. Cardiovascular (Heart & Blood Vessels)"
+                "2. Endocrine & Metabolic (Hormones & Energy)"
+                "3. Respiratory (Lungs & Breathing)"
+                "4. Neurological (Brain & Nerves)"
+                "5. Gastrointestinal & Hepatobiliary"
+                "6. Renal & Urological"
+                "7. Infectious Diseases (Systemic)"
+                "8. Musculoskeletal & Trauma"
+                "9. Oncology & Hematology"
+                "10. Psychiatric & Mental Health"
+
+                Respond STRICTLY in JSON format:
+                {
+                  "category": "Exact string from the list above"
+                }
+              `;
+
+              try {
+                 const effectiveKey = geminiKey.trim() || apiKey;
+                 const modelName = geminiKey.trim() ? "gemini-2.5-flash" : "gemini-2.5-flash-preview-09-2025";
+                 const response = await fetchGoogleWithBackoff(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${effectiveKey}`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    contents: [{ parts: [{ text: context }] }],
+                    generationConfig: { responseMimeType: "application/json" }
+                  })
+                });
+
+                const data = await response.json();
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '{}';
+                const result = JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim());
+
+                if (result.category) {
+                    setPatient(prev => ({
+                        ...prev,
+                        primary_diagnosis_categories: [result.category],
+                        ai_category_assigned: true
+                    }));
+                    setNotification({ type: 'success', message: 'Category auto-assigned successfully!' });
+                } else {
+                    setNotification({ type: 'error', message: 'AI could not confidently determine a category.' });
+                }
+              } catch (e) {
+                  console.error("Auto-assign failed", e);
+                  setNotification({ type: 'error', message: `AI Category Assignment Failed: ${e.message}` });
+              } finally {
+                  setAiCategoryLoading(false);
+              }
+          };
 
           const resetPatient = () => {
             setConfirmModal({
@@ -1463,7 +1535,18 @@
               2. Provide output in extremely concise, line-by-line format. DO NOT write long paragraphs or comprehensive explanations.
               3. Identify exactly WHICH DAYS in the schedule the interaction is active.
               4. Based on the patient's demographics, medications, and listed conditions (including symptoms, presenting complaints (PC), and comorbidities), independently deduce the single most likely underlying primary clinical diagnosis. Provide this as a concise string.
-              5. Based on all detected interactions, determine if the overall clinical recommendation requires: 
+              5. Map your deduced diagnosis to the appropriate category from this exact list (return as an array of exact string matches):
+                 - "1. Cardiovascular (Heart & Blood Vessels)"
+                 - "2. Endocrine & Metabolic (Hormones & Energy)"
+                 - "3. Respiratory (Lungs & Breathing)"
+                 - "4. Neurological (Brain & Nerves)"
+                 - "5. Gastrointestinal & Hepatobiliary"
+                 - "6. Renal & Urological"
+                 - "7. Infectious Diseases (Systemic)"
+                 - "8. Musculoskeletal & Trauma"
+                 - "9. Oncology & Hematology"
+                 - "10. Psychiatric & Mental Health"
+              6. Based on all detected interactions, determine if the overall clinical recommendation requires: 
                  - A dosage change (dosage_change_recommended)
                  - An alternative medication (alternative_medication_recommended)
                  - Stoppage of therapy (therapy_stoppage_recommended)
@@ -1473,6 +1556,7 @@
               Structure:
               {
                 "detected_primary_diagnosis": "Short Name of Diagnosis",
+                "detected_primary_categories": ["Category String"],
                 "dosage_change_recommended": false,
                 "alternative_medication_recommended": false,
                 "therapy_stoppage_recommended": false,
@@ -1511,6 +1595,7 @@
             return {
                 interactions: result.interactions || [],
                 detected_primary_diagnosis: result.detected_primary_diagnosis || '',
+                detected_primary_categories: result.detected_primary_categories || [],
                 dosage_change_recommended: !!result.dosage_change_recommended,
                 alternative_medication_recommended: !!result.alternative_medication_recommended,
                 therapy_stoppage_recommended: !!result.therapy_stoppage_recommended
@@ -1525,21 +1610,26 @@
               const aiResult = await fetchAIInteractions(patient, drugs);
               const interactionsResult = aiResult.interactions || [];
               const aiDx = aiResult.detected_primary_diagnosis || '';
+              const aiCategories = aiResult.detected_primary_categories || [];
               
               // Sort interactions by Severity (Major > Moderate > Minor > Monitoring)
               const severityOrder = { "Major": 1, "Moderate": 2, "Minor": 3, "Monitoring": 4 };
               interactionsResult.sort((a, b) => (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5));
 
-              setPatient(prev => ({ 
-                  ...prev, 
-                  ai_detected_diagnosis: aiDx,
-                  ai_dosage_change: aiResult.dosage_change_recommended || false,
-                  ai_alternative_therapy: aiResult.alternative_medication_recommended || false,
-                  ai_therapy_stoppage: aiResult.therapy_stoppage_recommended || false
-              }));
+              setPatient(prev => {
+                  const mergedCategories = [...new Set([...(prev.primary_diagnosis_categories || []), ...aiCategories])];
+                  return { 
+                      ...prev, 
+                      ai_detected_diagnosis: aiDx,
+                      primary_diagnosis_categories: mergedCategories,
+                      ai_dosage_change: aiResult.dosage_change_recommended || false,
+                      ai_alternative_therapy: aiResult.alternative_medication_recommended || false,
+                      ai_therapy_stoppage: aiResult.therapy_stoppage_recommended || false
+                  };
+              });
               setInteractions(interactionsResult);
               setActiveTab('analysis');
-              setNotification({ type: 'success', message: 'Analysis Complete' });
+              setNotification({ type: 'success', message: 'Analysis Complete. Categories Auto-Assigned.' });
             } catch (error) {
               console.error(error);
               setNotification({ type: 'error', message: `AI Analysis Failed: ${error.message}. Please check API Key or try again.` });
@@ -1565,12 +1655,14 @@
                           const aiResult = await fetchAIInteractions(pat, drg);
                           const interactionsResult = aiResult.interactions || [];
                           const aiDx = aiResult.detected_primary_diagnosis || '';
+                          const aiCategories = aiResult.detected_primary_categories || [];
                           
                           // Sort interactions by Severity
                           const severityOrder = { "Major": 1, "Moderate": 2, "Minor": 3, "Monitoring": 4 };
                           interactionsResult.sort((a, b) => (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5));
 
                           pat.ai_detected_diagnosis = aiDx;
+                          pat.primary_diagnosis_categories = [...new Set([...(pat.primary_diagnosis_categories || []), ...aiCategories])];
                           pat.ai_dosage_change = aiResult.dosage_change_recommended || false;
                           pat.ai_alternative_therapy = aiResult.alternative_medication_recommended || false;
                           pat.ai_therapy_stoppage = aiResult.therapy_stoppage_recommended || false;
@@ -1627,11 +1719,13 @@
                               const aiResult = await fetchAIInteractions(pat, drg);
                               const interactionsResult = aiResult.interactions || [];
                               const aiDx = aiResult.detected_primary_diagnosis || '';
+                              const aiCategories = aiResult.detected_primary_categories || [];
                               
                               const severityOrder = { "Major": 1, "Moderate": 2, "Minor": 3, "Monitoring": 4 };
                               interactionsResult.sort((a, b) => (severityOrder[a.severity] || 5) - (severityOrder[b.severity] || 5));
 
                               pat.ai_detected_diagnosis = aiDx;
+                              pat.primary_diagnosis_categories = [...new Set([...(pat.primary_diagnosis_categories || []), ...aiCategories])];
                               pat.ai_dosage_change = aiResult.dosage_change_recommended || false;
                               pat.ai_alternative_therapy = aiResult.alternative_medication_recommended || false;
                               pat.ai_therapy_stoppage = aiResult.therapy_stoppage_recommended || false;
@@ -1733,13 +1827,27 @@
                           if (!pairMap.has(key)) {
                               pairMap.set(key, {
                                   pair: i.pair,
-                                  severity: i.severity || 'Unknown',
-                                  type: i.interaction_type || 'Unknown',
-                                  mechanism: i.mechanism_short || '',
-                                  frequency: 0
+                                  frequency: 0,
+                                  details: []
                               });
                           }
-                          pairMap.get(key).frequency += 1;
+                          const pairData = pairMap.get(key);
+                          pairData.frequency += 1;
+                          
+                          // Check if this precise interaction detail is already recorded for the pair
+                          const isDuplicateDetail = pairData.details.some(d => 
+                              d.severity === i.severity && 
+                              d.type === i.interaction_type && 
+                              d.mechanism === i.mechanism_short
+                          );
+                          
+                          if (!isDuplicateDetail) {
+                              pairData.details.push({
+                                  severity: i.severity || 'Unknown',
+                                  type: i.interaction_type || 'Unknown',
+                                  mechanism: i.mechanism_short || ''
+                              });
+                          }
                       });
                   }
               });
@@ -1754,14 +1862,16 @@
               const headers = ['Drug Pair', 'Frequency', 'Severity', 'Interaction Type', 'Mechanism'];
               let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n";
               data.forEach(row => {
-                  const values = [
-                      `"${row.pair.replace(/"/g, '""')}"`,
-                      row.frequency,
-                      row.severity,
-                      `"${row.type.replace(/"/g, '""')}"`,
-                      `"${row.mechanism.replace(/"/g, '""')}"`
-                  ];
-                  csvContent += values.join(",") + "\n";
+                  row.details.forEach(d => {
+                      const values = [
+                          `"${row.pair.replace(/"/g, '""')}"`,
+                          row.frequency,
+                          d.severity,
+                          `"${d.type.replace(/"/g, '""')}"`,
+                          `"${d.mechanism.replace(/"/g, '""')}"`
+                      ];
+                      csvContent += values.join(",") + "\n";
+                  });
               });
               const encodedUri = encodeURI(csvContent);
               const link = document.createElement("a");
@@ -2199,10 +2309,26 @@
                             <label className="text-xs font-semibold text-slate-500 block mb-1">Primary Diagnosis</label>
                             <div className="flex gap-2">
                                 <input type="text" name="primary_diagnosis" value={patient.primary_diagnosis} onChange={handlePatientChange} className="w-full p-2 border rounded focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="e.g. Atrial Fibrillation" />
+                                <button onClick={autoAssignCategory} disabled={aiCategoryLoading} className="px-3 py-2 bg-indigo-50 border border-indigo-200 rounded hover:bg-indigo-100 text-indigo-700 text-sm font-semibold flex items-center gap-1 transition-colors whitespace-nowrap disabled:opacity-50" title="Auto-assign category with AI">
+                                    {aiCategoryLoading ? <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div> : <Sparkles className="w-4 h-4"/>} AI
+                                </button>
                                 <button onClick={() => setDiagnosisModal({ isOpen: true, targetField: 'primary_diagnosis' })} className="px-3 py-2 bg-slate-100 border border-slate-300 rounded hover:bg-slate-200 text-slate-700 text-sm font-semibold flex items-center gap-1 transition-colors whitespace-nowrap">
                                     <Plus className="w-4 h-4"/> Browse
                                 </button>
                             </div>
+                            {patient.primary_diagnosis_categories && patient.primary_diagnosis_categories.length > 0 && (
+                                <div className="mt-2 flex flex-wrap gap-1 items-center">
+                                    {patient.ai_category_assigned && (
+                                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] uppercase tracking-wider font-bold bg-purple-50 text-purple-700 border border-purple-200 mr-1">
+                                            <Sparkles className="w-2.5 h-2.5" /> AI Assigned
+                                        </span>
+                                    )}
+                                    <div className="text-xs text-green-600 font-medium flex gap-1 items-center">
+                                        <CheckCircle className="w-3.5 h-3.5 flex-shrink-0" />
+                                        <span>{patient.primary_diagnosis_categories.join(', ')}</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         <div>
                             <label className="text-xs font-semibold text-slate-500 block mb-1">Comorbidities</label>
@@ -2729,10 +2855,12 @@
               const allPairs = getAggregatedPairs();
               const filteredPairs = allPairs.filter(p => {
                   const matchesSearch = p.pair.toLowerCase().includes(pairSearchQuery.toLowerCase());
-                  const matchesSeverity = pairSeverityFilter === 'All' || p.severity === pairSeverityFilter;
+                  const matchesSeverity = pairSeverityFilter === 'All' || p.details.some(d => d.severity === pairSeverityFilter);
                   const matchesType = pairTypeFilter === 'All' || 
-                    (pairTypeFilter === 'PK' ? p.type.includes('PK') : 
-                    (pairTypeFilter === 'PD' ? p.type.includes('PD') : p.type.includes('Disease')));
+                    p.details.some(d => 
+                      (pairTypeFilter === 'PK' ? d.type.includes('PK') : 
+                      (pairTypeFilter === 'PD' ? d.type.includes('PD') : d.type.includes('Disease')))
+                    );
                   return matchesSearch && matchesSeverity && matchesType;
               });
 
@@ -2800,13 +2928,21 @@
                                               </td>
                                           </tr>
                                       ) : filteredPairs.map((p, i) => (
-                                          <tr key={i} className="hover:bg-slate-50 transition-colors">
-                                              <td className="p-4 font-bold text-slate-800 border-r">{p.pair}</td>
-                                              <td className="p-4 text-center font-mono font-bold text-indigo-600 bg-indigo-50/30 border-r">{p.frequency}</td>
-                                              <td className="p-4 border-r"><SeverityBadge level={p.severity} /></td>
-                                              <td className="p-4 text-xs font-semibold text-slate-600 border-r">{p.type}</td>
-                                              <td className="p-4 text-xs text-slate-600">{p.mechanism}</td>
-                                          </tr>
+                                          <React.Fragment key={i}>
+                                              {p.details.map((d, idx) => (
+                                                  <tr key={`${i}-${idx}`} className="hover:bg-slate-50 transition-colors">
+                                                      {idx === 0 && (
+                                                          <>
+                                                              <td rowSpan={p.details.length} className="p-4 font-bold text-slate-800 border-r border-b align-top bg-white">{p.pair}</td>
+                                                              <td rowSpan={p.details.length} className="p-4 text-center font-mono font-bold text-indigo-600 bg-indigo-50/30 border-r border-b align-top">{p.frequency}</td>
+                                                          </>
+                                                      )}
+                                                      <td className={`p-4 border-r align-top ${idx < p.details.length - 1 ? 'border-b border-slate-100' : ''}`}><SeverityBadge level={d.severity} /></td>
+                                                      <td className={`p-4 text-xs font-semibold text-slate-600 border-r align-top ${idx < p.details.length - 1 ? 'border-b border-slate-100' : ''}`}>{d.type}</td>
+                                                      <td className={`p-4 text-xs text-slate-600 align-top ${idx < p.details.length - 1 ? 'border-b border-slate-100' : ''}`}>{d.mechanism}</td>
+                                                  </tr>
+                                              ))}
+                                          </React.Fragment>
                                       ))}
                                   </tbody>
                               </table>
