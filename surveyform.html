@@ -1873,7 +1873,6 @@
                   if (rec.interactions && rec.interactions.length > 0) {
                       rec.interactions.forEach(i => {
                           let key = i.pair;
-                          // Standardize pair names (e.g. "A + B" matches "B + A")
                           if (key && key.includes('+')) {
                               key = key.split('+').map(s => s.trim()).sort().join(' + ');
                           }
@@ -1883,13 +1882,13 @@
                                   pair: key,
                                   frequency: 0,
                                   severityCounts: { Major: 0, Moderate: 0, Minor: 0, Monitoring: 0 },
-                                  details: []
+                                  type: '',
+                                  mechanism: ''
                               });
                           }
                           const pairData = pairMap.get(key);
                           pairData.frequency += 1;
                           
-                          // Track individual severity frequencies
                           const sev = i.severity || 'Unknown';
                           if (pairData.severityCounts[sev] !== undefined) {
                               pairData.severityCounts[sev]++;
@@ -1897,56 +1896,39 @@
                               pairData.severityCounts[sev] = 1;
                           }
                           
-                          // Push all details to filter later
-                          pairData.details.push({
-                              severity: i.severity || 'Unknown',
-                              type: i.interaction_type || 'Unknown',
-                              mechanism: i.mechanism_short || ''
-                          });
+                          if (i.interaction_type && !pairData.type) pairData.type = i.interaction_type;
+                          if (i.mechanism_short && !pairData.mechanism) pairData.mechanism = i.mechanism_short;
                       });
                   }
               });
-
-              const severityRank = { "Major": 1, "Moderate": 2, "Minor": 3, "Monitoring": 4, "Unknown": 5 };
-
-              return Array.from(pairMap.values()).map(p => {
-                  // 1. Sort details inside the pair so the highest severity comes first
-                  p.details.sort((a, b) => (severityRank[a.severity] || 5) - (severityRank[b.severity] || 5));
-                  
-                  // 2. Keep ONLY the single most severe mechanism to avoid duplicates
-                  p.details = p.details.length > 0 ? [p.details[0]] : [];
-                  
-                  // 3. Mark the top severity for table sorting
-                  p.topSeverity = p.details.length > 0 ? p.details[0].severity : 'Unknown';
-                  
-                  return p;
-              }).sort((a, b) => {
-                  // 4. Sort final table: Highest Severity first, then by Frequency
-                  const sevDiff = (severityRank[a.topSeverity] || 5) - (severityRank[b.topSeverity] || 5);
-                  if (sevDiff !== 0) return sevDiff;
-                  return b.frequency - a.frequency;
-              });
+              
+              return Array.from(pairMap.values()).sort((a, b) => b.frequency - a.frequency);
           };
-
+          
           const exportPairsCSV = (data) => {
               if (data.length === 0) {
                   setNotification({ type: 'info', message: 'No pairs to export.' });
                   return;
               }
-              const headers = ['Drug Pair', 'Frequency', 'Severity', 'Interaction Type', 'Mechanism'];
+              const headers = ['Drug Pair', 'Total Frequency', 'Severities', 'Interaction Type', 'Mechanism'];
               let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n";
+              
               data.forEach(row => {
-                  row.details.forEach(d => {
-                      const values = [
-                          `"${row.pair.replace(/"/g, '""')}"`,
-                          row.frequency,
-                          d.severity,
-                          `"${d.type.replace(/"/g, '""')}"`,
-                          `"${d.mechanism.replace(/"/g, '""')}"`
-                      ];
-                      csvContent += values.join(",") + "\n";
-                  });
+                  const severities = Object.entries(row.severityCounts)
+                      .filter(([_, count]) => count > 0)
+                      .map(([sev, count]) => `${sev}: ${count}`)
+                      .join('; ');
+          
+                  const values = [
+                      `"${row.pair.replace(/"/g, '""')}"`,
+                      row.frequency,
+                      `"${severities}"`,
+                      `"${row.type.replace(/"/g, '""')}"`,
+                      `"${row.mechanism.replace(/"/g, '""')}"`
+                  ];
+                  csvContent += values.join(",") + "\n";
               });
+              
               const encodedUri = encodeURI(csvContent);
               const link = document.createElement("a");
               link.setAttribute("href", encodedUri);
@@ -2935,116 +2917,6 @@
             );
           };
 
-          const renderPairs = () => {
-              const allPairs = getAggregatedPairs();
-              const filteredPairs = allPairs.filter(p => {
-                  const matchesSearch = p.pair.toLowerCase().includes(pairSearchQuery.toLowerCase());
-                  const matchesSeverity = pairSeverityFilter === 'All' || p.details.some(d => d.severity === pairSeverityFilter);
-                  const matchesType = pairTypeFilter === 'All' || 
-                    p.details.some(d => 
-                      (pairTypeFilter === 'PK' ? d.type.includes('PK') : 
-                      (pairTypeFilter === 'PD' ? d.type.includes('PD') : d.type.includes('Disease')))
-                    );
-                  return matchesSearch && matchesSeverity && matchesType;
-              });
-
-              return (
-                  <div className="max-w-6xl mx-auto transition-all duration-300">
-                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3 select-none">
-                          <div>
-                              <h2 className="text-2xl font-bold text-slate-900">Interacting Drug Pairs</h2>
-                              <p className="text-slate-500 text-sm">Aggregated frequency and mechanisms across all saved records.</p>
-                          </div>
-                          <button onClick={() => exportPairsCSV(filteredPairs)} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm font-bold text-sm">
-                              <Download className="w-4 h-4"/> Export Pairs CSV
-                          </button>
-                      </div>
-
-                      <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 items-center select-none">
-                          <div className="w-full md:w-1/3 relative">
-                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                  <SearchIcon className="h-4 w-4 text-slate-400" />
-                              </div>
-                              <input
-                                  type="text"
-                                  value={pairSearchQuery}
-                                  onChange={(e) => setPairSearchQuery(e.target.value)}
-                                  placeholder="Search drug pair..."
-                                  className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md leading-5 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
-                              />
-                          </div>
-                          <select value={pairSeverityFilter} onChange={(e) => setPairSeverityFilter(e.target.value)} className="w-full md:w-auto p-2 border border-slate-300 rounded-md text-sm outline-none focus:ring-1 focus:ring-indigo-500">
-                              <option value="All">All Severities</option>
-                              <option value="Major">Major</option>
-                              <option value="Moderate">Moderate</option>
-                              <option value="Minor">Minor</option>
-                              <option value="Monitoring">Monitoring</option>
-                          </select>
-                          <select value={pairTypeFilter} onChange={(e) => setPairTypeFilter(e.target.value)} className="w-full md:w-auto p-2 border border-slate-300 rounded-md text-sm outline-none focus:ring-1 focus:ring-indigo-500">
-                              <option value="All">All Types</option>
-                              <option value="PK">Pharmacokinetic (PK)</option>
-                              <option value="PD">Pharmacodynamic (PD)</option>
-                              <option value="Disease">Drug-Disease</option>
-                          </select>
-                          <div className="text-sm bg-slate-50 border px-3 py-2 rounded text-slate-600 font-medium whitespace-nowrap">
-                              Showing: {filteredPairs.length} pairs
-                          </div>
-                      </div>
-
-                      <div className="bg-white rounded-lg shadow overflow-hidden border">
-                          <div className="overflow-x-auto w-full">
-                              <table className="w-full text-sm text-left min-w-[800px]">
-                                  <thead className="bg-slate-50 text-slate-700 font-bold border-b select-none">
-                                      <tr>
-                                          <th className="p-4 whitespace-nowrap border-r">Drug Pair</th>
-                                          <th className="p-4 text-center border-r">Frequency</th>
-                                          <th className="p-4 border-r">Severity</th>
-                                          <th className="p-4 border-r">Type</th>
-                                          <th className="p-4 w-1/2">Mechanism</th>
-                                      </tr>
-                                  </thead>
-                                  <tbody className="divide-y select-text">
-                                          {filteredPairs.length === 0 ? (
-                                              <tr>
-                                                  <td colSpan="5" className="p-8 text-center text-slate-500 italic">
-                                                      <AlertTriangle className="w-10 h-10 mx-auto text-slate-300 mb-2" />
-                                                      No pairs match your criteria.
-                                                  </td>
-                                              </tr>
-                                          ) : filteredPairs.map((p, i) => {
-                                              const d = p.details[0]; // Isolate the single highest severity detail
-                                              return (
-                                                  <tr key={i} className="hover:bg-slate-50 transition-colors">
-                                                      <td className="p-4 font-bold text-slate-800 border-r align-top bg-white">{p.pair}</td>
-                                                      <td className="p-4 text-center font-mono font-bold text-indigo-600 bg-indigo-50/30 border-r align-top">
-                                                          <div className="text-base">{p.frequency}</div>
-                                                          <div className="text-[10px] leading-tight font-normal text-slate-500 mt-1 flex flex-col items-center gap-0.5">
-                                                              {p.severityCounts?.Major > 0 && <div className="text-red-600">Major: {p.severityCounts.Major}</div>}
-                                                              {p.severityCounts?.Moderate > 0 && <div className="text-orange-500">Moderate: {p.severityCounts.Moderate}</div>}
-                                                              {p.severityCounts?.Minor > 0 && <div className="text-yellow-600">Minor: {p.severityCounts.Minor}</div>}
-                                                              {p.severityCounts?.Monitoring > 0 && <div className="text-blue-500">Monitoring: {p.severityCounts.Monitoring}</div>}
-                                                          </div>
-                                                      </td>
-                                                      <td className="p-4 border-r align-top">
-                                                          <SeverityBadge level={d ? d.severity : 'Unknown'} />
-                                                      </td>
-                                                      <td className="p-4 text-xs font-semibold text-slate-600 border-r align-top">
-                                                          {d ? d.type : 'N/A'}
-                                                      </td>
-                                                      <td className="p-4 text-xs text-slate-600 align-top">
-                                                          {d ? d.mechanism : 'N/A'}
-                                                      </td>
-                                                  </tr>
-                                              );
-                                          })}
-                                      </tbody>
-                              </table>
-                          </div>
-                      </div>
-                  </div>
-              );
-          }
-
           const renderRecords = () => {
               const toggleSelectRecord = (id) => {
                   setSelectedRecordIds(prev => 
@@ -3521,6 +3393,104 @@
                   </div>
               );
           };
+
+          const renderPairs = () => {
+              const allPairs = getAggregatedPairs();
+              const filteredPairs = allPairs.filter(p => {
+                  const matchesSearch = p.pair.toLowerCase().includes(pairSearchQuery.toLowerCase());
+                  const matchesSeverity = pairSeverityFilter === 'All' || p.severityCounts[pairSeverityFilter] > 0;
+                  const matchesType = pairTypeFilter === 'All' || p.type.includes(pairTypeFilter) || (pairTypeFilter === 'Disease' && p.type.includes('Disease'));
+                  return matchesSearch && matchesSeverity && matchesType;
+              });
+
+              return (
+                  <div className="max-w-6xl mx-auto transition-all duration-300">
+                      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-3 select-none">
+                          <div>
+                              <h2 className="text-2xl font-bold text-slate-900">Interacting Drug Pairs</h2>
+                              <p className="text-slate-500 text-sm">Aggregated frequency and mechanisms across all saved records.</p>
+                          </div>
+                          <button onClick={() => exportPairsCSV(filteredPairs)} className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm font-bold text-sm">
+                              <Download className="w-4 h-4"/> Export Pairs CSV
+                          </button>
+                      </div>
+
+                      <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 items-center select-none">
+                          <div className="w-full md:w-1/3 relative">
+                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                  <SearchIcon className="h-4 w-4 text-slate-400" />
+                              </div>
+                              <input
+                                  type="text"
+                                  value={pairSearchQuery}
+                                  onChange={(e) => setPairSearchQuery(e.target.value)}
+                                  placeholder="Search drug pair..."
+                                  className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-md leading-5 bg-white text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500"
+                              />
+                          </div>
+                          <select value={pairSeverityFilter} onChange={(e) => setPairSeverityFilter(e.target.value)} className="w-full md:w-auto p-2 border border-slate-300 rounded-md text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                              <option value="All">All Severities</option>
+                              <option value="Major">Major</option>
+                              <option value="Moderate">Moderate</option>
+                              <option value="Minor">Minor</option>
+                              <option value="Monitoring">Monitoring</option>
+                          </select>
+                          <select value={pairTypeFilter} onChange={(e) => setPairTypeFilter(e.target.value)} className="w-full md:w-auto p-2 border border-slate-300 rounded-md text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                              <option value="All">All Types</option>
+                              <option value="PK">Pharmacokinetic (PK)</option>
+                              <option value="PD">Pharmacodynamic (PD)</option>
+                              <option value="Disease">Drug-Disease</option>
+                          </select>
+                          <div className="text-sm bg-slate-50 border px-3 py-2 rounded text-slate-600 font-medium whitespace-nowrap">
+                              Showing: {filteredPairs.length} pairs
+                          </div>
+                      </div>
+
+                      <div className="bg-white rounded-lg shadow overflow-hidden border">
+                          <div className="overflow-x-auto w-full">
+                              <table className="w-full text-sm text-left min-w-[800px]">
+                                  <thead className="bg-slate-50 text-slate-700 font-bold border-b select-none">
+                                      <tr>
+                                          <th className="p-4 whitespace-nowrap border-r">Drug Pair</th>
+                                          <th className="p-4 text-center border-r">Frequency</th>
+                                          <th className="p-4 border-r">Severity</th>
+                                          <th className="p-4 border-r">Type</th>
+                                          <th className="p-4 w-1/2">Mechanism</th>
+                                      </tr>
+                                  </thead>
+                                  <tbody className="divide-y select-text">
+                                      {filteredPairs.length === 0 ? (
+                                          <tr>
+                                              <td colSpan="5" className="p-8 text-center text-slate-500 italic">
+                                                  <AlertTriangle className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+                                                  No pairs match your criteria.
+                                              </td>
+                                          </tr>
+                                      ) : filteredPairs.map((p, i) => (
+                                          <tr key={i} className="hover:bg-slate-50 transition-colors">
+                                              <td className="p-4 font-bold text-slate-800 border-r align-top bg-white">{p.pair}</td>
+                                              <td className="p-4 text-center font-mono font-bold text-indigo-600 bg-indigo-50/30 border-r align-top">
+                                                  <div className="text-base">{p.frequency}</div>
+                                              </td>
+                                              <td className="p-4 border-r align-top">
+                                                  <div className="flex flex-col gap-1">
+                                                      {p.severityCounts.Major > 0 && <span className="bg-red-100 text-red-800 border border-red-200 px-2 py-1 rounded text-[10px] font-bold w-max">MAJOR: {p.severityCounts.Major}</span>}
+                                                      {p.severityCounts.Moderate > 0 && <span className="bg-orange-100 text-orange-800 border border-orange-200 px-2 py-1 rounded text-[10px] font-bold w-max">MODERATE: {p.severityCounts.Moderate}</span>}
+                                                      {p.severityCounts.Minor > 0 && <span className="bg-yellow-100 text-yellow-800 border border-yellow-200 px-2 py-1 rounded text-[10px] font-bold w-max">MINOR: {p.severityCounts.Minor}</span>}
+                                                      {p.severityCounts.Monitoring > 0 && <span className="bg-blue-100 text-blue-800 border border-blue-200 px-2 py-1 rounded text-[10px] font-bold w-max">MONITORING: {p.severityCounts.Monitoring}</span>}
+                                                  </div>
+                                              </td>
+                                              <td className="p-4 text-xs font-semibold text-slate-600 border-r align-top">{p.type}</td>
+                                              <td className="p-4 text-xs text-slate-600 align-top">{p.mechanism}</td>
+                                          </tr>
+                                      ))}
+                                  </tbody>
+                              </table>
+                          </div>
+                      </div>
+                  </div>
+              );
+          }
 
           if (!isAuthenticated) {
             return <LoginScreen onLogin={() => setIsAuthenticated(true)} />;
