@@ -1947,17 +1947,35 @@
               return (categoriesArray.includes(cat.title) || cat.items.some(item => categoriesArray.includes(item))) ? 1 : 0;
           };
 
+          // Helper to extract the numeric category value from the primary diagnosis string
+          const getPrimaryCatNum = (catString) => {
+              if (!catString) return 0;
+              const match = catString.match(/^(\d+)\./);
+              return match ? parseInt(match[1], 10) : 0;
+          };
+
+          // Helper for SPSS Age Code
+          const getAgeCode = (age) => {
+              const a = parseInt(age, 10);
+              if (isNaN(a)) return 0; 
+              if (a <= 40) return 1; // 18-40
+              if (a <= 60) return 2; // 41-60
+              if (a <= 80) return 3; // 61-80
+              return 4; // > 80
+          };
+
+          const formatExcelCount = (count) => count === 0 ? "No" : count;
+
           // --- Distinct Data Export Logic ---
           
           // Generalized Normal Data (Human Readable, Descriptive, Strings, Lists)
           const generateNormalData = () => {
               return savedRecords
                   .filter(rec => rec.interactions && rec.interactions.length > 0)
-                  .map((rec, index) => {
+                  .map((rec) => {
                   const demo = rec.demographics || {};
                   const meds = rec.medications || [];
                   const inters = rec.interactions || [];
-                  const disp = rec.disposition || {};
 
                   // --- Count AI Recommendations from Interactions ---
                   let doseChangeCount = 0;
@@ -1982,16 +2000,12 @@
                       });
                   }
 
-                  // Helpers for calculations
-                  const numDiagnosis = demo.primary_diagnosis ? demo.primary_diagnosis.split(',').filter(d => d.trim() !== '').length : 0;
                   const scr = parseFloat(demo.serum_creatinine);
-                  const tbil = parseFloat(demo.bilirubin);
-                  const hasRenalImpairment = (demo.crcl && parseInt(demo.crcl) < 60) || (demo.rft_enabled && !isNaN(scr) && scr > 1.2) ? 1 : 0;
-                  const hasHepaticImpairment = (demo.lft_enabled && !isNaN(tbil) && tbil > 1.2) ? 1 : 0;
+                  const hasRenalImpairment = (demo.crcl && parseInt(demo.crcl) < 60) || (demo.rft_enabled && !isNaN(scr) && scr > 1.2);
                   
                   const numComorbidities = demo.comorbidities ? demo.comorbidities.split(',').filter(c => c.trim() !== '').length : 0;
                   const totalDrugs = meds.length;
-                  const polypharmacy = totalDrugs >= 5 ? 1 : 0;
+                  const medStatusExcel = totalDrugs >= 10 ? "Hyper-Polypharmacy" : (totalDrugs >= 5 ? "Polypharmacy" : "None");
                   
                   const majorCount = inters.filter(i => i.severity === 'Major').length;
                   const moderateCount = inters.filter(i => i.severity === 'Moderate').length;
@@ -2004,70 +2018,40 @@
                   
                   const highestSeverity = majorCount > 0 ? 'Major' : (moderateCount > 0 ? 'Moderate' : (minorCount > 0 ? 'Minor' : (monitoringCount > 0 ? 'Monitoring' : 'None')));
                   
-                  const interventionRequired = disp.intervention && disp.intervention !== 'Monitoring Only' ? 1 : 0;
-                  const icuTransfer = demo.ward === 'ICU (Intensive Care)' ? 1 : 0;
-                  const mortality = disp.outcome === 'Deceased' ? 1 : 0;
+                  const primaryDiagString = demo.primary_diagnosis_categories?.[0] || 'None';
 
                   return {
-                      Sr_No: index + 1,
                       Patient_ID: rec.patientId,
-                      Age: demo.age || '',
                       Gender: demo.gender || '',
-                      Ward_Type: demo.ward || '',
-                      Length_of_Stay_Days: demo.daysAdmitted || 0,
-                      Primary_Diagnosis_Text: demo.primary_diagnosis || 'None',
-                      Comorbidities_Text: demo.comorbidities || 'None',
-                      Number_of_Primary_Diagnoses: numDiagnosis,
-                      Number_of_Comorbidities: numComorbidities,
-                      Primary_Cat_Cardio: hasCategory(demo.primary_diagnosis_categories, 0) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Cardio: hasCategory(demo.comorbidities_categories, 0) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Endocrine: hasCategory(demo.primary_diagnosis_categories, 1) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Endocrine: hasCategory(demo.comorbidities_categories, 1) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Respiratory: hasCategory(demo.primary_diagnosis_categories, 2) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Respiratory: hasCategory(demo.comorbidities_categories, 2) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Neuro: hasCategory(demo.primary_diagnosis_categories, 3) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Neuro: hasCategory(demo.comorbidities_categories, 3) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_GI: hasCategory(demo.primary_diagnosis_categories, 4) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_GI: hasCategory(demo.comorbidities_categories, 4) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Renal: hasCategory(demo.primary_diagnosis_categories, 5) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Renal: hasCategory(demo.comorbidities_categories, 5) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Infectious: hasCategory(demo.primary_diagnosis_categories, 6) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Infectious: hasCategory(demo.comorbidities_categories, 6) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Musculo: hasCategory(demo.primary_diagnosis_categories, 7) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Musculo: hasCategory(demo.comorbidities_categories, 7) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Oncology: hasCategory(demo.primary_diagnosis_categories, 8) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Oncology: hasCategory(demo.comorbidities_categories, 8) === 1 ? 'Yes' : 'No',
-                      Primary_Cat_Psych: hasCategory(demo.primary_diagnosis_categories, 9) === 1 ? 'Yes' : 'No',
-                      Comorb_Cat_Psych: hasCategory(demo.comorbidities_categories, 9) === 1 ? 'Yes' : 'No',
+                      Age: demo.age || '',
+                      Length_of_Stay: demo.daysAdmitted || 0,
+                      Primary_Diagnosis: primaryDiagString,
+                      Comorb_Cardiovascular: hasCategory(demo.comorbidities_categories, 0) ? 'Yes' : 'No',
+                      Comorb_Endocrine: hasCategory(demo.comorbidities_categories, 1) ? 'Yes' : 'No',
+                      Comorb_Respiratory: hasCategory(demo.comorbidities_categories, 2) ? 'Yes' : 'No',
+                      Comorb_Neurological: hasCategory(demo.comorbidities_categories, 3) ? 'Yes' : 'No',
+                      Comorb_Gastrointestinal: hasCategory(demo.comorbidities_categories, 4) ? 'Yes' : 'No',
+                      Comorb_Renal: hasCategory(demo.comorbidities_categories, 5) ? 'Yes' : 'No',
+                      Comorb_Infectious: hasCategory(demo.comorbidities_categories, 6) ? 'Yes' : 'No',
+                      Comorb_Musculoskeletal: hasCategory(demo.comorbidities_categories, 7) ? 'Yes' : 'No',
+                      Comorb_Oncology: hasCategory(demo.comorbidities_categories, 8) ? 'Yes' : 'No',
+                      Comorb_Psychiatric: hasCategory(demo.comorbidities_categories, 9) ? 'Yes' : 'No',
+                      Number_Of_Comorbidities: numComorbidities,
                       Renal_Impairment: hasRenalImpairment ? 'Yes' : 'No',
-                      Hepatic_Impairment: hasHepaticImpairment ? 'Yes' : 'No',
-                      Total_Number_of_Drugs: totalDrugs,
-                      Polypharmacy: polypharmacy ? 'Yes' : 'No',
-                      Major_DDI_Occurrence: majorCount > 0 ? 'Yes' : 'No',
+                      Total_Number_OF_Drugs: totalDrugs,
+                      Medication_Status: medStatusExcel,
                       Total_DDIs: inters.length,
-                      Major_DDI_Count: majorCount,
-                      Moderate_DDI_Count: moderateCount,
-                      Minor_DDI_Count: minorCount,
-                      Monitoring_DDI_Count: monitoringCount,
-                      Pharmacokinetic_DDI_Count: pkCount,
-                      Pharmacodynamic_DDI_Count: pdCount,
-                      Drug_Disease_Interaction_Count: diseaseCount,
-                      AI_Detected_Primary_Diagnosis: demo.ai_detected_diagnosis || 'None',
-                      AI_Detected_DDIs: inters.length, 
-                      Clinician_Detected_DDIs: 0, 
                       Highest_DDI_Severity: highestSeverity,
-                      AI_Dosage_Change_Count: doseChangeCount,
-                      AI_Alternative_Therapy_Count: altTherapyCount,
-                      AI_Therapy_Stoppage_Count: stopTherapyCount,
-                      Clinician_Dosage_Changed: disp.intervention === 'Dose Reduced' ? 'Yes' : 'No',
-                      Clinician_Alternative_Therapy: disp.intervention === 'Alternative Therapy Prescribed' ? 'Yes' : 'No',
-                      Clinician_Therapy_Stopped: disp.intervention === 'Drug Discontinued' ? 'Yes' : 'No',
-                      Intervention_Required: interventionRequired ? 'Yes' : 'No',
-                      Adverse_Drug_Event: 0, 
-                      ICU_Transfer: icuTransfer ? 'Yes' : 'No',
-                      Mortality: mortality ? 'Yes' : 'No',
-                      Final_Outcome: disp.outcome || '',
-                      Supervised_Status: demo.supervised ? 'Yes' : 'No'
+                      Major_DDI_Status: formatExcelCount(majorCount),
+                      Moderate_DDI_Status: formatExcelCount(moderateCount),
+                      Minor_DDI_Status: formatExcelCount(minorCount),
+                      Monitoring_DDI_Status: formatExcelCount(monitoringCount),
+                      Pharmacokinetic_DDI_Status: formatExcelCount(pkCount),
+                      Pharmacodynamic_DDI_Status: formatExcelCount(pdCount),
+                      Drug_Disease_Interaction_Status: formatExcelCount(diseaseCount),
+                      Dosage_Change_Count: formatExcelCount(doseChangeCount),
+                      Alternative_Therapy_Count: formatExcelCount(altTherapyCount),
+                      Therapy_Stoppage_Count: formatExcelCount(stopTherapyCount)
                   };
               });
           };
@@ -2076,11 +2060,10 @@
           const generateSpssData = () => {
               return savedRecords
                   .filter(rec => rec.interactions && rec.interactions.length > 0)
-                  .map((rec, index) => {
+                  .map((rec) => {
                   const demo = rec.demographics || {};
                   const meds = rec.medications || [];
                   const inters = rec.interactions || [];
-                  const disp = rec.disposition || {};
 
                   // --- Count AI Recommendations from Interactions ---
                   let doseChangeCount = 0;
@@ -2105,15 +2088,12 @@
                       });
                   }
 
-                  const numDiagnosis = demo.primary_diagnosis ? demo.primary_diagnosis.split(',').filter(d => d.trim() !== '').length : 0;
                   const scr = parseFloat(demo.serum_creatinine);
-                  const tbil = parseFloat(demo.bilirubin);
-                  const hasRenalImpairment = (demo.crcl && parseInt(demo.crcl) < 60) || (demo.rft_enabled && !isNaN(scr) && scr > 1.2) ? 1 : 0;
-                  const hasHepaticImpairment = (demo.lft_enabled && !isNaN(tbil) && tbil > 1.2) ? 1 : 0;
+                  const hasRenalImpairment = ((demo.crcl && parseInt(demo.crcl) < 60) || (demo.rft_enabled && !isNaN(scr) && scr > 1.2)) ? 1 : 0;
                   
                   const numComorbidities = demo.comorbidities ? demo.comorbidities.split(',').filter(c => c.trim() !== '').length : 0;
                   const totalDrugs = meds.length;
-                  const polypharmacy = totalDrugs >= 5 ? 1 : 0;
+                  const medStatusSpss = totalDrugs >= 10 ? 2 : (totalDrugs >= 5 ? 1 : 0);
                   
                   const majorCount = inters.filter(i => i.severity === 'Major').length;
                   const moderateCount = inters.filter(i => i.severity === 'Moderate').length;
@@ -2124,90 +2104,49 @@
                   const pdCount = inters.filter(i => i.interaction_type && i.interaction_type.includes('PD')).length;
                   const diseaseCount = inters.filter(i => i.interaction_type && i.interaction_type.includes('Disease')).length;
                   
-                  const highestSeverity = majorCount > 0 ? 'Major' : (moderateCount > 0 ? 'Moderate' : (minorCount > 0 ? 'Minor' : (monitoringCount > 0 ? 'Monitoring' : 'None')));
+                  const highestSeveritySpss = majorCount > 0 ? 1 : (moderateCount > 0 ? 2 : (minorCount > 0 ? 3 : (monitoringCount > 0 ? 4 : 0)));
                   
-                  const interventionRequired = disp.intervention && disp.intervention !== 'Monitoring Only' ? 1 : 0;
-                  const icuTransfer = demo.ward === 'ICU (Intensive Care)' ? 1 : 0;
-                  const mortality = disp.outcome === 'Deceased' ? 1 : 0;
+                  const primaryDiagString = demo.primary_diagnosis_categories?.[0] || '';
 
                   return {
-                      Sr_No: index + 1,
                       Patient_ID: rec.patientId,
-                      Age: demo.age || '',
-                      Gender: demo.gender === 'Female' ? 2 : 1, // Optional: numeric gender (1=Male, 2=Female)
-                      Ward_Type: demo.ward || '',
-                      Length_of_Stay_Days: demo.daysAdmitted || 0,
-                      Primary_Diagnosis_Text: demo.primary_diagnosis || 'None',
-                      Comorbidities_Text: demo.comorbidities || 'None',
-                      Number_of_Primary_Diagnoses: numDiagnosis,
-                      Number_of_Comorbidities: numComorbidities,
-                      Primary_Cat_Cardio: hasCategory(demo.primary_diagnosis_categories, 0),
-                      Comorb_Cat_Cardio: hasCategory(demo.comorbidities_categories, 0),
-                      Primary_Cat_Endocrine: hasCategory(demo.primary_diagnosis_categories, 1),
-                      Comorb_Cat_Endocrine: hasCategory(demo.comorbidities_categories, 1),
-                      Primary_Cat_Respiratory: hasCategory(demo.primary_diagnosis_categories, 2),
-                      Comorb_Cat_Respiratory: hasCategory(demo.comorbidities_categories, 2),
-                      Primary_Cat_Neuro: hasCategory(demo.primary_diagnosis_categories, 3),
-                      Comorb_Cat_Neuro: hasCategory(demo.comorbidities_categories, 3),
-                      Primary_Cat_GI: hasCategory(demo.primary_diagnosis_categories, 4),
-                      Comorb_Cat_GI: hasCategory(demo.comorbidities_categories, 4),
-                      Primary_Cat_Renal: hasCategory(demo.primary_diagnosis_categories, 5),
-                      Comorb_Cat_Renal: hasCategory(demo.comorbidities_categories, 5),
-                      Primary_Cat_Infectious: hasCategory(demo.primary_diagnosis_categories, 6),
-                      Comorb_Cat_Infectious: hasCategory(demo.comorbidities_categories, 6),
-                      Primary_Cat_Musculo: hasCategory(demo.primary_diagnosis_categories, 7),
-                      Comorb_Cat_Musculo: hasCategory(demo.comorbidities_categories, 7),
-                      Primary_Cat_Oncology: hasCategory(demo.primary_diagnosis_categories, 8),
-                      Comorb_Cat_Oncology: hasCategory(demo.comorbidities_categories, 8),
-                      Primary_Cat_Psych: hasCategory(demo.primary_diagnosis_categories, 9),
-                      Comorb_Cat_Psych: hasCategory(demo.comorbidities_categories, 9),
+                      Gender: demo.gender === 'Female' ? 2 : 1,
+                      Age: getAgeCode(demo.age),
+                      Length_of_Stay: demo.daysAdmitted || 0,
+                      Primary_Diagnosis: getPrimaryCatNum(primaryDiagString),
+                      Comorb_Cardiovascular: hasCategory(demo.comorbidities_categories, 0),
+                      Comorb_Endocrine: hasCategory(demo.comorbidities_categories, 1),
+                      Comorb_Respiratory: hasCategory(demo.comorbidities_categories, 2),
+                      Comorb_Neurological: hasCategory(demo.comorbidities_categories, 3),
+                      Comorb_Gastrointestinal: hasCategory(demo.comorbidities_categories, 4),
+                      Comorb_Renal: hasCategory(demo.comorbidities_categories, 5),
+                      Comorb_Infectious: hasCategory(demo.comorbidities_categories, 6),
+                      Comorb_Musculoskeletal: hasCategory(demo.comorbidities_categories, 7),
+                      Comorb_Oncology: hasCategory(demo.comorbidities_categories, 8),
+                      Comorb_Psychiatric: hasCategory(demo.comorbidities_categories, 9),
+                      Number_Of_Comorbidities: numComorbidities,
                       Renal_Impairment: hasRenalImpairment,
-                      Hepatic_Impairment: hasHepaticImpairment,
-                      Total_Number_of_Drugs: totalDrugs,
-                      Polypharmacy: polypharmacy,
-                      Major_DDI_Occurrence: majorCount > 0 ? 1 : 0,
+                      Total_Number_OF_Drugs: totalDrugs,
+                      Medication_Status: medStatusSpss,
                       Total_DDIs: inters.length,
-                      Major_DDI_Count: majorCount,
-                      Moderate_DDI_Count: moderateCount,
-                      Minor_DDI_Count: minorCount,
-                      Monitoring_DDI_Count: monitoringCount,
-                      Pharmacokinetic_DDI_Count: pkCount,
-                      Pharmacodynamic_DDI_Count: pdCount,
-                      Drug_Disease_Interaction_Count: diseaseCount,
-                      AI_Detected_Primary_Diagnosis: demo.ai_detected_diagnosis || 'None',
-                      AI_Detected_DDIs: inters.length, 
-                      Clinician_Detected_DDIs: 0, 
-                      Highest_DDI_Severity: highestSeverity,
-                      AI_Dosage_Change_Count: doseChangeCount,
-                      AI_Alternative_Therapy_Count: altTherapyCount,
-                      AI_Therapy_Stoppage_Count: stopTherapyCount,
-                      Clinician_Dosage_Changed: disp.intervention === 'Dose Reduced' ? 1 : 0,
-                      Clinician_Alternative_Therapy: disp.intervention === 'Alternative Therapy Prescribed' ? 1 : 0,
-                      Clinician_Therapy_Stopped: disp.intervention === 'Drug Discontinued' ? 1 : 0,
-                      Intervention_Required: interventionRequired,
-                      Adverse_Drug_Event: 0, 
-                      ICU_Transfer: icuTransfer,
-                      Mortality: mortality,
-                      Final_Outcome: disp.outcome || '',
-                      Supervised_Status: demo.supervised ? 1 : 0
+                      Highest_DDI_Severity: highestSeveritySpss,
+                      Major_DDI_Status: majorCount,
+                      Moderate_DDI_Status: moderateCount,
+                      Minor_DDI_Status: minorCount,
+                      Monitoring_DDI_Status: monitoringCount,
+                      Pharmacokinetic_DDI_Status: pkCount,
+                      Pharmacodynamic_DDI_Status: pdCount,
+                      Drug_Disease_Interaction_Status: diseaseCount,
+                      Dosage_Change_Count: doseChangeCount,
+                      Alternative_Therapy_Count: altTherapyCount,
+                      Therapy_Stoppage_Count: stopTherapyCount
                   };
               });
           };
 
-          // Ensure columns toggle object exists with preferred defaults
+          // Ensure columns toggle object exists with preferred defaults (empty so ALL are shown)
           useEffect(() => {
-              // Only these specific columns will be UNCHECKED by default, exactly matching your screenshot
-              const defaultUnchecked = [
-                  "Ward_Type", 
-                  "Clinician_Dosage_Changed", 
-                  "Clinician_Alternative_Therapy", 
-                  "Clinician_Therapy_Stopped",
-                  "Intervention_Required", 
-                  "Adverse_Drug_Event", 
-                  "ICU_Transfer", 
-                  "Mortality", 
-                  "Final_Outcome"
-              ];
+              const defaultUnchecked = []; 
 
               const dummyData = exportType === 'spss' ? generateSpssData() : generateNormalData();
               if (dummyData.length > 0 && Object.keys(visibleColumns).length === 0) {
@@ -2258,7 +2197,7 @@
                   csvContent += values.join(",") + "\n";
               });
 
-              const prefix = exportType === 'spss' ? 'spss' : 'generalized';
+              const prefix = exportType === 'spss' ? 'spss' : 'excel';
               const encodedUri = encodeURI(csvContent);
               const link = document.createElement("a");
               link.setAttribute("href", encodedUri);
@@ -3164,67 +3103,39 @@
               const allVariablesList = currentData.length > 0 ? Object.keys(currentData[0]) : [];
               const activeVariablesList = allVariablesList.filter(h => visibleColumns[h] !== false);
               
-              // SPSS Data Dictionary Definition
+              // NEW EXACT SPSS CODEBOOK DEFINITION
               const spssCodebook = [
-                  { variable: "Sr_No", measure: "Scale", type: "Numeric", coding: "Sequential record number" },
-                  { variable: "Patient_ID", measure: "Nominal", type: "String", coding: "Alphanumeric ID (e.g., PT-123)" },
-                  { variable: "Age", measure: "Scale", type: "Numeric", coding: "Continuous integer (Years)" },
+                  { variable: "Patient_ID", measure: "Nominal", type: "String", coding: "Alphanumeric String" },
                   { variable: "Gender", measure: "Nominal", type: "Numeric", coding: "1 = Male, 2 = Female" },
-                  { variable: "Ward_Type", measure: "Nominal", type: "String", coding: "Text: 'General Ward', 'ICU', etc." },
-                  { variable: "Length_of_Stay_Days", measure: "Scale", type: "Numeric", coding: "Continuous integer (Days)" },
-                  { variable: "Primary_Diagnosis_Text", measure: "Nominal", type: "String", coding: "Free text diagnosis" },
-                  { variable: "Comorbidities_Text", measure: "Nominal", type: "String", coding: "Free text comorbidities" },
-                  { variable: "Number_of_Primary_Diagnoses", measure: "Scale", type: "Numeric", coding: "Count of listed primary diagnoses (0, 1, 2...)" },
-                  { variable: "Number_of_Comorbidities", measure: "Scale", type: "Numeric", coding: "Count of listed comorbidities (0, 1, 2...)" },
-                  { variable: "Primary_Cat_Cardio", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Comorb_Cat_Cardio", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Primary_Cat_Endocrine", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Comorb_Cat_Endocrine", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Primary_Cat_Respiratory", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Comorb_Cat_Respiratory", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Primary_Cat_Neuro", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Comorb_Cat_Neuro", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Primary_Cat_GI", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Comorb_Cat_GI", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Primary_Cat_Renal", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Comorb_Cat_Renal", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Primary_Cat_Infectious", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Comorb_Cat_Infectious", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Primary_Cat_Musculo", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Comorb_Cat_Musculo", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Primary_Cat_Oncology", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Comorb_Cat_Oncology", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Primary_Cat_Psych", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Comorb_Cat_Psych", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
-                  { variable: "Renal_Impairment", measure: "Nominal", type: "Numeric", coding: "0 = No (CrCl >= 60 or SCr <= 1.2), 1 = Yes (CrCl < 60 or SCr > 1.2)" },
-                  { variable: "Hepatic_Impairment", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (Bilirubin > 1.2)" },
-                  { variable: "Total_Number_of_Drugs", measure: "Scale", type: "Numeric", coding: "Total unique medications count" },
-                  { variable: "Polypharmacy", measure: "Nominal", type: "Numeric", coding: "0 = No (< 5 drugs), 1 = Yes (>= 5 drugs)" },
-                  { variable: "Major_DDI_Occurrence", measure: "Nominal", type: "Numeric", coding: "0 = No Major DDI, 1 = Has Major DDI" },
-                  { variable: "Total_DDIs", measure: "Scale", type: "Numeric", coding: "Total interactions detected by AI" },
-                  { variable: "Major_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of Major severity DDIs" },
-                  { variable: "Moderate_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of Moderate severity DDIs" },
-                  { variable: "Minor_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of Minor severity DDIs" },
-                  { variable: "Monitoring_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of Monitoring severity DDIs" },
-                  { variable: "Pharmacokinetic_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of PK mechanism DDIs" },
-                  { variable: "Pharmacodynamic_DDI_Count", measure: "Scale", type: "Numeric", coding: "Count of PD mechanism DDIs" },
-                  { variable: "Drug_Disease_Interaction_Count", measure: "Scale", type: "Numeric", coding: "Count of Drug-Disease interactions" },
-                  { variable: "AI_Detected_Primary_Diagnosis", measure: "Nominal", type: "String", coding: "Free text auto-detected by AI" },
-                  { variable: "AI_Detected_DDIs", measure: "Scale", type: "Numeric", coding: "Total AI detected DDIs (Same as Total_DDIs)" },
-                  { variable: "Clinician_Detected_DDIs", measure: "Scale", type: "Numeric", coding: "Placeholder (Default = 0)" },
-                  { variable: "Highest_DDI_Severity", measure: "Ordinal", type: "String", coding: "Text: 'Major' > 'Moderate' > 'Minor' > 'Monitoring' > 'None'" },
-                  { variable: "AI_Dosage_Change_Count", measure: "Scale", type: "Numeric", coding: "Count of interactions requiring dose adjustment" },
-                  { variable: "AI_Alternative_Therapy_Count", measure: "Scale", type: "Numeric", coding: "Count of interactions requiring alternative therapy" },
-                  { variable: "AI_Therapy_Stoppage_Count", measure: "Scale", type: "Numeric", coding: "Count of interactions requiring therapy stoppage" },
-                  { variable: "Clinician_Dosage_Changed", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (Authentic: Dose Reduced)" },
-                  { variable: "Clinician_Alternative_Therapy", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (Authentic: Alt Therapy Prescribed)" },
-                  { variable: "Clinician_Therapy_Stopped", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (Authentic: Drug Discontinued)" },
-                  { variable: "Intervention_Required", measure: "Nominal", type: "Numeric", coding: "0 = No (Monitoring Only), 1 = Yes (Dose Reduced, Discontinued, etc.)" },
-                  { variable: "Adverse_Drug_Event", measure: "Nominal", type: "Numeric", coding: "Placeholder (Default = 0)" },
-                  { variable: "ICU_Transfer", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (Ward is ICU)" },
-                  { variable: "Mortality", measure: "Nominal", type: "Numeric", coding: "0 = Alive, 1 = Deceased" },
-                  { variable: "Final_Outcome", measure: "Nominal", type: "String", coding: "Text: 'Stable', 'Recovered', 'Deceased', etc." },
-                  { variable: "Supervised_Status", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (Clinician Verified)" }
+                  { variable: "Age", measure: "Ordinal", type: "Numeric", coding: "1 = 18-40, 2 = 41-60, 3 = 61-80, 4 = >80" },
+                  { variable: "Length_of_Stay", measure: "Scale", type: "Numeric", coding: "Total days admitted" },
+                  { variable: "Primary_Diagnosis", measure: "Nominal", type: "Numeric", coding: "1-10 representing the 10 clinical categories (0 = None)" },
+                  { variable: "Comorb_Cardiovascular", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
+                  { variable: "Comorb_Endocrine", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
+                  { variable: "Comorb_Respiratory", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
+                  { variable: "Comorb_Neurological", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
+                  { variable: "Comorb_Gastrointestinal", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
+                  { variable: "Comorb_Renal", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
+                  { variable: "Comorb_Infectious", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
+                  { variable: "Comorb_Musculoskeletal", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
+                  { variable: "Comorb_Oncology", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
+                  { variable: "Comorb_Psychiatric", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes" },
+                  { variable: "Number_Of_Comorbidities", measure: "Scale", type: "Numeric", coding: "Total count of comorbidities" },
+                  { variable: "Renal_Impairment", measure: "Nominal", type: "Numeric", coding: "0 = No, 1 = Yes (CrCl <60 or SCr >1.2)" },
+                  { variable: "Total_Number_OF_Drugs", measure: "Scale", type: "Numeric", coding: "Count of unique drugs" },
+                  { variable: "Medication_Status", measure: "Ordinal", type: "Numeric", coding: "0 = None (<5), 1 = Polypharmacy (5-9), 2 = Hyper-Polypharmacy (>=10)" },
+                  { variable: "Total_DDIs", measure: "Scale", type: "Numeric", coding: "Total interactions" },
+                  { variable: "Highest_DDI_Severity", measure: "Ordinal", type: "Numeric", coding: "1 = Major, 2 = Moderate, 3 = Minor, 4 = Monitoring, 0 = None" },
+                  { variable: "Major_DDI_Status", measure: "Scale", type: "Numeric", coding: "0 = No, >0 = Actual Count" },
+                  { variable: "Moderate_DDI_Status", measure: "Scale", type: "Numeric", coding: "0 = No, >0 = Actual Count" },
+                  { variable: "Minor_DDI_Status", measure: "Scale", type: "Numeric", coding: "0 = No, >0 = Actual Count" },
+                  { variable: "Monitoring_DDI_Status", measure: "Scale", type: "Numeric", coding: "0 = No, >0 = Actual Count" },
+                  { variable: "Pharmacokinetic_DDI_Status", measure: "Scale", type: "Numeric", coding: "0 = No, >0 = Actual Count" },
+                  { variable: "Pharmacodynamic_DDI_Status", measure: "Scale", type: "Numeric", coding: "0 = No, >0 = Actual Count" },
+                  { variable: "Drug_Disease_Interaction_Status", measure: "Scale", type: "Numeric", coding: "0 = No, >0 = Actual Count" },
+                  { variable: "Dosage_Change_Count", measure: "Scale", type: "Numeric", coding: "0 = No, >0 = Actual Count" },
+                  { variable: "Alternative_Therapy_Count", measure: "Scale", type: "Numeric", coding: "0 = No, >0 = Actual Count" },
+                  { variable: "Therapy_Stoppage_Count", measure: "Scale", type: "Numeric", coding: "0 = No, >0 = Actual Count" }
               ];
 
               return (
