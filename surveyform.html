@@ -61,7 +61,7 @@
         }
 
         /* Scrollbar styling */
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
@@ -2961,8 +2961,8 @@
                           </div>
                      ) : (
                           <div className="bg-white rounded-lg shadow overflow-hidden border">
-                              <div className="overflow-x-auto w-full">
-                                  <table className="w-full text-sm text-left min-w-[800px]">
+                              <div className="overflow-x-auto w-full pb-2">
+                                  <table className="w-full text-sm text-left min-w-[1150px]">
                                      <thead className="bg-slate-50 text-slate-700 font-bold border-b select-none">
                                          <tr>
                                              <th className="p-4 w-12 text-center">
@@ -2974,9 +2974,7 @@
                                                     className="rounded text-indigo-600 cursor-pointer disabled:opacity-50"
                                                  />
                                              </th>
-                                             <th className="p-4 whitespace-nowrap text-slate-400">Sr. #</th>
                                              <th className="p-4 whitespace-nowrap">Patient ID</th>
-                                             <th className="p-4 whitespace-nowrap">Date</th>
                                              <th className="p-4 whitespace-nowrap">Demographics</th>
                                              <th className="p-4 min-w-[150px]">Condition</th>
                                              <th className="p-4 whitespace-nowrap">Clinical Analysis</th>
@@ -2999,14 +2997,12 @@
                                                         className="rounded text-indigo-600 cursor-pointer disabled:opacity-50"
                                                      />
                                                  </td>
-                                                 <td className="p-4 font-bold text-slate-400">{i + 1}</td>
                                                  <td className="p-4 font-mono font-bold text-indigo-600 whitespace-nowrap">
                                                      <div className="flex items-center gap-2">
                                                          {rec.patientId}
                                                          {rec.demographics?.supervised && <CheckCircle className="w-4 h-4 text-emerald-500" title="Supervised" />}
                                                      </div>
                                                  </td>
-                                                 <td className="p-4 text-slate-500 whitespace-nowrap">{new Date(rec.timestamp).toLocaleDateString()}</td>
                                                  <td className="p-4 whitespace-nowrap">{rec.demographics?.age || 'N/A'}y / {rec.demographics?.gender || 'N/A'}</td>
                                                  <td className="p-4 text-slate-600">
                                                      <div className="font-bold truncate max-w-[200px]" title={rec.demographics?.primary_diagnosis}>{rec.demographics?.primary_diagnosis || 'N/A'}</div>
