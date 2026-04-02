@@ -671,7 +671,7 @@
           const [pairSeverityFilter, setPairSeverityFilter] = useState('All');
           const [pairTypeFilter, setPairTypeFilter] = useState('All');
           
-          const generateId = () => `PT-${Math.floor(100 + Math.random() * 900)}`;
+          const generateId = () => 'PT-' + Math.floor(1000 + Math.random() * 9000) + '-' + Date.now().toString().slice(-4);
 
           const getInitialPatientState = () => ({
             id: generateId(),
@@ -1414,45 +1414,82 @@
               try {
                 setLoading(true);
                 
+                let targetId = patient.id;
+                const existingIndex = savedRecords.findIndex(r => r.patientId === targetId);
+                let isCollision = false;
+
+                // Step 2: Add Collision Detection
+                if (existingIndex >= 0) {
+                    const existingRecord = savedRecords[existingIndex];
+                    
+                    // Safely stringify to prevent type mismatches (e.g., Number vs String)
+                    const existingAge = String(existingRecord.demographics?.age || '');
+                    const currentAge = String(patient.age || '');
+                    const existingGender = existingRecord.demographics?.gender || '';
+                    const currentGender = patient.gender || '';
+
+                    // If Age or Gender DO NOT MATCH, this is a dangerous collision
+                    if (existingAge !== currentAge || existingGender !== currentGender) {
+                        isCollision = true;
+                        targetId = generateId(); // Generate brand new unique ID
+                        
+                        // Update current patient state with new ID
+                        setPatient(prev => ({ ...prev, id: targetId }));
+                    }
+                }
+                
+                // Construct Payload with correct targetId
                 const payload = {
-                    patient_id: patient.id,
-                    patientId: patient.id,
+                    patient_id: targetId,
+                    patientId: targetId,
                     timestamp: new Date().toISOString(),
-                    demographics: patient,
+                    demographics: { ...patient, id: targetId },
                     medications: drugs,
                     interactions: interactions,
                     disposition: { intervention: patient.intervention, outcome: patient.outcome }
                 };
                 
-                const existingIndex = savedRecords.findIndex(r => r.patientId === patient.id);
                 let updatedRecords = [...savedRecords];
                 
-                if (existingIndex >= 0) {
+                if (isCollision) {
+                    // Push as a brand new record instead of overwriting the existing index
+                    updatedRecords.push(payload);
+                } else if (existingIndex >= 0) {
+                    // Safe intended update to the same patient
                     updatedRecords[existingIndex] = payload;
                 } else {
+                    // Normal new record insertion
                     updatedRecords.push(payload);
                 }
                 
                 // Always save locally first so user data is NEVER lost
                 setSavedRecords(updatedRecords);
                 localStorage.setItem('cliniq_records', JSON.stringify(updatedRecords));
-                setNotification({ type: 'success', message: `Patient ${patient.id} Saved Locally` });
+                
+                if (isCollision) {
+                    setNotification({ type: 'info', message: `ID Collision Detected: Saved as new patient with ID ${targetId}` });
+                } else {
+                    setNotification({ type: 'success', message: `Patient ${targetId} Saved Locally` });
+                }
 
                 if (supabaseClient) {
                     try {
                         const { error } = await supabaseClient
                             .from('clinical_records')
                             .upsert({ 
-                                patient_id: patient.id,
-                                demographics: patient,
+                                patient_id: targetId,
+                                demographics: payload.demographics,
                                 medications: drugs,
                                 interactions: interactions,
-                                disposition: { intervention: patient.intervention, outcome: patient.outcome },
-                                created_at: new Date().toISOString()
+                                disposition: payload.disposition,
+                                created_at: payload.timestamp
                             }, { onConflict: 'patient_id' });
 
                         if (error) throw error;
-                        setNotification({ type: 'success', message: `Synced to Cloud Database!` });
+                        
+                        if (!isCollision) {
+                            setNotification({ type: 'success', message: `Synced to Cloud Database!` });
+                        }
                     } catch (supaErr) {
                         console.warn("Cloud save ignored:", supaErr);
                     }
