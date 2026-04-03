@@ -671,7 +671,7 @@
           const [pairSeverityFilter, setPairSeverityFilter] = useState('All');
           const [pairTypeFilter, setPairTypeFilter] = useState('All');
           
-          const generateId = () => 'PT-' + Math.floor(1000 + Math.random() * 9000) + '-' + Date.now().toString().slice(-4);
+          const generateId = () => 'PT-' + Math.floor(100 + Math.random() * 900); // Changed to 3 numeric digits as requested
 
           const getInitialPatientState = () => ({
             id: generateId(),
@@ -1415,25 +1415,59 @@
                 setLoading(true);
                 
                 let targetId = patient.id;
-                const existingIndex = savedRecords.findIndex(r => r.patientId === targetId);
+                let existingRecord = savedRecords.find(r => r.patientId === targetId);
+
+                // Live check against Supabase to prevent multi-device collision
+                if (supabaseClient) {
+                    try {
+                        const { data } = await supabaseClient
+                            .from('clinical_records')
+                            .select('patient_id, demographics')
+                            .eq('patient_id', targetId)
+                            .limit(1);
+                        if (data && data.length > 0) {
+                            existingRecord = { patientId: data[0].patient_id, demographics: data[0].demographics };
+                        }
+                    } catch (err) {
+                        console.warn("Could not check live Supabase for collision:", err);
+                    }
+                }
+
                 let isCollision = false;
 
-                // Step 2: Add Collision Detection
-                if (existingIndex >= 0) {
-                    const existingRecord = savedRecords[existingIndex];
-                    
-                    // Safely stringify to prevent type mismatches (e.g., Number vs String)
+                if (existingRecord) {
                     const existingAge = String(existingRecord.demographics?.age || '');
                     const currentAge = String(patient.age || '');
                     const existingGender = existingRecord.demographics?.gender || '';
                     const currentGender = patient.gender || '';
+                    const existingWeight = String(existingRecord.demographics?.weight || '');
+                    const currentWeight = String(patient.weight || '');
 
-                    // If Age or Gender DO NOT MATCH, this is a dangerous collision
-                    if (existingAge !== currentAge || existingGender !== currentGender) {
+                    // If Age, Gender, or Weight DO NOT MATCH, this is a dangerous collision from a different patient
+                    if (existingAge !== currentAge || existingGender !== currentGender || existingWeight !== currentWeight) {
                         isCollision = true;
-                        targetId = generateId(); // Generate brand new unique ID
+
+                        // Keep generating until we find a completely free ID
+                        let newId = generateId();
+                        let idIsFree = false;
                         
-                        // Update current patient state with new ID
+                        while (!idIsFree) {
+                            let locMatch = savedRecords.some(r => r.patientId === newId);
+                            let remMatch = false;
+                            
+                            if (supabaseClient && !locMatch) {
+                                const { data } = await supabaseClient.from('clinical_records').select('patient_id').eq('patient_id', newId).limit(1);
+                                if (data && data.length > 0) remMatch = true;
+                            }
+                            
+                            if (!locMatch && !remMatch) {
+                                idIsFree = true;
+                            } else {
+                                newId = 'PT-' + Math.floor(1000 + Math.random() * 9000); // Expanded range if collisions happen
+                            }
+                        }
+
+                        targetId = newId;
                         setPatient(prev => ({ ...prev, id: targetId }));
                     }
                 }
@@ -1450,9 +1484,10 @@
                 };
                 
                 let updatedRecords = [...savedRecords];
+                const existingIndex = savedRecords.findIndex(r => r.patientId === targetId);
                 
                 if (isCollision) {
-                    // Push as a brand new record instead of overwriting the existing index
+                    // Push as a brand new record instead of overwriting
                     updatedRecords.push(payload);
                 } else if (existingIndex >= 0) {
                     // Safe intended update to the same patient
@@ -1467,7 +1502,7 @@
                 localStorage.setItem('cliniq_records', JSON.stringify(updatedRecords));
                 
                 if (isCollision) {
-                    setNotification({ type: 'info', message: `ID Collision Detected: Saved as new patient with ID ${targetId}` });
+                    setNotification({ type: 'info', message: `ID in use. Generated new ID: ${targetId} and saved successfully.` });
                 } else {
                     setNotification({ type: 'success', message: `Patient ${targetId} Saved Locally` });
                 }
@@ -2040,7 +2075,11 @@
                   const scr = parseFloat(demo.serum_creatinine);
                   const hasRenalImpairment = (demo.crcl && parseInt(demo.crcl) < 60) || (demo.rft_enabled && !isNaN(scr) && scr > 1.2);
                   
-                  const numComorbidities = demo.comorbidities ? demo.comorbidities.split(',').filter(c => c.trim() !== '').length : 0;
+                  // NEW ROBUST COMORBIDITY COUNTING: Check length of selected categories directly
+                  const numComorbidities = (demo.comorbidities_categories && Array.isArray(demo.comorbidities_categories))
+                        ? demo.comorbidities_categories.length 
+                        : 0;
+
                   const totalDrugs = meds.length;
                   const medStatusExcel = totalDrugs >= 10 ? "Hyper-Polypharmacy" : (totalDrugs >= 5 ? "Polypharmacy" : "None");
                   
@@ -2128,7 +2167,11 @@
                   const scr = parseFloat(demo.serum_creatinine);
                   const hasRenalImpairment = ((demo.crcl && parseInt(demo.crcl) < 60) || (demo.rft_enabled && !isNaN(scr) && scr > 1.2)) ? 1 : 0;
                   
-                  const numComorbidities = demo.comorbidities ? demo.comorbidities.split(',').filter(c => c.trim() !== '').length : 0;
+                  // NEW ROBUST COMORBIDITY COUNTING
+                  const numComorbidities = (demo.comorbidities_categories && Array.isArray(demo.comorbidities_categories))
+                        ? demo.comorbidities_categories.length 
+                        : 0;
+
                   const totalDrugs = meds.length;
                   const medStatusSpss = totalDrugs >= 10 ? 2 : (totalDrugs >= 5 ? 1 : 0);
                   
